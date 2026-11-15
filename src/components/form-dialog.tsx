@@ -27,7 +27,7 @@ export function FormDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button variant="outline" />}>{trigger}</DialogTrigger>
       <DialogContent className="flex max-h-[90svh] flex-col sm:max-w-lg">
-        <DialogHeader>
+        <DialogHeader className="-mx-4 -mt-4 rounded-t-xl border-b bg-muted/50 p-4">
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         {/* header and footer stay put; only the fields scroll */}
