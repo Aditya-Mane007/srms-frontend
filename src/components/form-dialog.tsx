@@ -26,16 +26,17 @@ export function FormDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button variant="outline" />}>{trigger}</DialogTrigger>
-      <DialogContent className="max-h-[90svh] overflow-y-auto sm:max-w-lg">
+      <DialogContent className="flex max-h-[90svh] flex-col sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
-        <form onSubmit={onSubmit}>
-          <FieldGroup>
+        {/* header and footer stay put; only the fields scroll */}
+        <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
+          <FieldGroup className="-mx-4 min-h-0 overflow-y-auto px-4 py-1">
             {children}
             <ErrorText error={error} />
           </FieldGroup>
-          <DialogFooter className="mt-6">
+          <DialogFooter>
             <Button type="submit" disabled={busy}>
               {busy ? "Saving…" : submitLabel}
             </Button>
