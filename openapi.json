@@ -1,1 +1,3317 @@
-{"openapi":"3.1.0","info":{"title":"SRMS API","version":"0.1.0"},"components":{"securitySchemes":{"bearer":{"type":"http","scheme":"bearer","bearerFormat":"JWT"}},"schemas":{"Health":{"type":"object","properties":{"status":{"type":"string","enum":["ok","degraded"]},"checks":{"type":"object","additionalProperties":{"type":"string","enum":["up","down"]}}},"required":["status","checks"]},"AccessToken":{"type":"object","properties":{"accessToken":{"type":"string"}},"required":["accessToken"]},"Error":{"type":"object","properties":{"error":{"type":"object","properties":{"code":{"type":"string"},"message":{"type":"string"},"details":{},"requestId":{"type":"string"}},"required":["code","message"]}},"required":["error"]},"User":{"type":"object","properties":{"id":{"type":"string","format":"uuid"},"email":{"type":"string"},"name":{"type":"string"},"active":{"type":"boolean"},"lastLoginAt":{"type":["string","null"],"format":"date-time"}},"required":["id","email","name","active","lastLoginAt"]},"Invitation":{"type":"object","properties":{"id":{"type":"string","format":"uuid"},"email":{"type":"string"},"expiresAt":{"type":"string","format":"date-time"}},"required":["id","email","expiresAt"]},"Me":{"allOf":[{"$ref":"#/components/schemas/User"},{"type":"object","properties":{"tenant":{"type":"object","properties":{"id":{"type":"string","format":"uuid"},"name":{"type":"string"}},"required":["id","name"]}},"required":["tenant"]}]},"City":{"type":"object","properties":{"id":{"type":"string","format":"uuid"},"stateId":{"type":"string","format":"uuid"},"code":{"type":"string"},"name":{"type":"string"},"aliases":{"type":"array","items":{"type":"string"}},"active":{"type":"boolean"}},"required":["id","stateId","code","name","aliases","active"]},"State":{"type":"object","properties":{"id":{"type":"string","format":"uuid"},"code":{"type":"string"},"name":{"type":"string"},"aliases":{"type":"array","items":{"type":"string"}},"active":{"type":"boolean"},"cities":{"type":"array","items":{"$ref":"#/components/schemas/City"}}},"required":["id","code","name","aliases","active","cities"]},"Company":{"type":"object","properties":{"id":{"type":"string","format":"uuid"},"tenantId":{"type":"string","format":"uuid"},"code":{"type":"string"},"name":{"type":"string"},"address":{"type":["string","null"]},"ownerName":{"type":["string","null"]},"lin":{"type":["string","null"]},"pfCode":{"type":["string","null"]},"esicCode":{"type":["string","null"]},"ptRegNo":{"type":["string","null"]},"subContractorName":{"type":["string","null"]},"subContractorAddress":{"type":["string","null"]},"columnAliases":{"type":"object","additionalProperties":{"type":"string"}},"active":{"type":"boolean"},"createdAt":{"type":"string","format":"date-time"}},"required":["id","tenantId","code","name","address","ownerName","lin","pfCode","esicCode","ptRegNo","subContractorName","subContractorAddress","columnAliases","active","createdAt"]},"Client":{"type":"object","properties":{"id":{"type":"string","format":"uuid"},"tenantId":{"type":"string","format":"uuid"},"companyId":{"type":"string","format":"uuid"},"code":{"type":"string"},"name":{"type":"string"},"address":{"type":["string","null"]},"active":{"type":"boolean"},"createdAt":{"type":"string","format":"date-time"}},"required":["id","tenantId","companyId","code","name","address","active","createdAt"]},"Site":{"type":"object","properties":{"id":{"type":"string","format":"uuid"},"tenantId":{"type":"string","format":"uuid"},"companyId":{"type":"string","format":"uuid"},"clientId":{"type":"string","format":"uuid"},"stateId":{"type":"string","format":"uuid"},"cityId":{"type":"string","format":"uuid"},"siteCode":{"type":"string"},"name":{"type":"string"},"address":{"type":["string","null"]},"location":{"type":"string"},"locationCode":{"type":"string"},"natureOfWork":{"type":["string","null"]},"workingHours":{"type":["string","null"]},"restInterval":{"type":["string","null"]},"isDefault":{"type":"boolean"},"active":{"type":"boolean"},"createdAt":{"type":"string","format":"date-time"}},"required":["id","tenantId","companyId","clientId","stateId","cityId","siteCode","name","address","location","locationCode","natureOfWork","workingHours","restInterval","isDefault","active","createdAt"]},"ClientWithSites":{"allOf":[{"$ref":"#/components/schemas/Client"},{"type":"object","properties":{"sites":{"type":"array","items":{"$ref":"#/components/schemas/Site"}}},"required":["sites"]}]},"SkillCategory":{"type":"object","properties":{"id":{"type":"string","format":"uuid"},"tenantId":{"type":"string","format":"uuid"},"companyId":{"type":"string","format":"uuid"},"code":{"type":"string"},"name":{"type":"string"},"sortOrder":{"type":"integer"},"active":{"type":"boolean"}},"required":["id","tenantId","companyId","code","name","sortOrder","active"]},"MinimumWage":{"type":"object","properties":{"id":{"type":"string","format":"uuid"},"tenantId":{"type":"string","format":"uuid"},"companyId":{"type":"string","format":"uuid"},"skillCategoryId":{"type":"string","format":"uuid"},"validFrom":{"type":"string","format":"date-time"},"validTo":{"type":"string","format":"date-time"},"basic":{"type":"string","description":"decimal as string"},"vda":{"type":"string","description":"decimal as string"},"total":{"type":"string","description":"decimal as string"},"overtimePerHour":{"type":"string","description":"decimal as string"}},"required":["id","tenantId","companyId","skillCategoryId","validFrom","validTo","basic","vda","total","overtimePerHour"]},"MinimumWageRow":{"allOf":[{"$ref":"#/components/schemas/MinimumWage"},{"type":"object","properties":{"category":{"type":"object","properties":{"code":{"type":"string"},"name":{"type":"string"}},"required":["code","name"]}},"required":["category"]}]},"DesignationSkill":{"type":"object","properties":{"tenantId":{"type":"string","format":"uuid"},"companyId":{"type":"string","format":"uuid"},"designation":{"type":"string"},"skillCategoryId":{"type":"string","format":"uuid"}},"required":["tenantId","companyId","designation","skillCategoryId"]},"SeedResult":{"type":"object","properties":{"dryRun":{"type":"boolean"},"created":{"type":"integer","description":"employees created (or that would be, on a dry run)"},"skipped":{"type":"array","items":{"type":"string"},"description":"EMP_IDs already in the company"},"newSites":{"type":"array","items":{"type":"string"},"description":"site codes created for new locations"}},"required":["dryRun","created","skipped","newSites"]}},"parameters":{}},"paths":{"/health":{"get":{"summary":"Liveness of the API and its dependencies (database, renderer)","responses":{"200":{"description":"All dependencies up","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Health"}}}},"503":{"description":"A dependency is down","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Health"}}}}}}},"/auth/login":{"post":{"summary":"Sign in; sets the refresh cookie","requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"email":{"type":"string","format":"email"},"password":{"type":"string","minLength":1,"maxLength":200}},"required":["email","password"]}}}},"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AccessToken"}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/auth/refresh":{"post":{"summary":"New access token from the refresh cookie (rotates it)","responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/AccessToken"}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/auth/logout":{"post":{"summary":"Ends the login and clears the refresh cookie","responses":{"204":{"description":"OK"},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/auth/forgot-password":{"post":{"summary":"Emails a reset link if the account exists","requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"email":{"type":"string","format":"email"}},"required":["email"]}}}},"responses":{"204":{"description":"OK"},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/auth/reset-password":{"post":{"summary":"Sets a new password from the emailed token","requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"token":{"type":"string"},"password":{"type":"string","minLength":10,"maxLength":200}},"required":["token","password"]}}}},"responses":{"204":{"description":"OK"},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/invitations/accept":{"post":{"summary":"Creates the user from an invitation token","requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"token":{"type":"string"},"name":{"type":"string","minLength":1,"maxLength":200},"password":{"type":"string","minLength":10,"maxLength":200}},"required":["token","name","password"]}}}},"responses":{"201":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/User"}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/invitations":{"post":{"summary":"Invites an email to this tenant","security":[{"bearer":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"email":{"type":"string","format":"email"}},"required":["email"]}}}},"responses":{"201":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Invitation"}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/me":{"get":{"summary":"The signed-in user and tenant","security":[{"bearer":[]}],"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Me"}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/users":{"get":{"summary":"Users of this tenant","security":[{"bearer":[]}],"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/User"}}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/users/{id}":{"patch":{"summary":"Activate or deactivate a user","security":[{"bearer":[]}],"parameters":[{"schema":{"type":"string","format":"uuid"},"required":true,"name":"id","in":"path"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"active":{"type":"boolean"}},"required":["active"]}}}},"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/User"}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/states":{"get":{"summary":"Active states with their cities","security":[{"bearer":[]}],"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/State"}}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/companies":{"get":{"summary":"Companies of this tenant","security":[{"bearer":[]}],"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/Company"}}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}},"post":{"summary":"Create a company","security":[{"bearer":[]}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","pattern":"^[A-Z0-9]{2,6}$"},"name":{"type":"string","minLength":1,"maxLength":500},"address":{"type":["string","null"],"minLength":1,"maxLength":500},"ownerName":{"type":["string","null"],"minLength":1,"maxLength":500},"lin":{"type":["string","null"],"minLength":1,"maxLength":500},"pfCode":{"type":["string","null"],"minLength":1,"maxLength":500},"esicCode":{"type":["string","null"],"minLength":1,"maxLength":500},"ptRegNo":{"type":["string","null"],"minLength":1,"maxLength":500},"subContractorName":{"type":["string","null"],"minLength":1,"maxLength":500},"subContractorAddress":{"type":["string","null"],"minLength":1,"maxLength":500},"columnAliases":{"type":"object","additionalProperties":{"type":"string"}},"active":{"type":"boolean"}},"required":["code","name"]}}}},"responses":{"201":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Company"}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/companies/{id}":{"patch":{"summary":"Update a company","security":[{"bearer":[]}],"parameters":[{"schema":{"type":"string","format":"uuid"},"required":true,"name":"id","in":"path"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","pattern":"^[A-Z0-9]{2,6}$"},"name":{"type":"string","minLength":1,"maxLength":500},"address":{"type":["string","null"],"minLength":1,"maxLength":500},"ownerName":{"type":["string","null"],"minLength":1,"maxLength":500},"lin":{"type":["string","null"],"minLength":1,"maxLength":500},"pfCode":{"type":["string","null"],"minLength":1,"maxLength":500},"esicCode":{"type":["string","null"],"minLength":1,"maxLength":500},"ptRegNo":{"type":["string","null"],"minLength":1,"maxLength":500},"subContractorName":{"type":["string","null"],"minLength":1,"maxLength":500},"subContractorAddress":{"type":["string","null"],"minLength":1,"maxLength":500},"columnAliases":{"type":"object","additionalProperties":{"type":"string"}},"active":{"type":"boolean"}}}}}},"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Company"}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/companies/{id}/clients":{"get":{"summary":"Clients of a company","security":[{"bearer":[]}],"parameters":[{"schema":{"type":"string","format":"uuid"},"required":true,"name":"id","in":"path"}],"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/Client"}}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}},"post":{"summary":"Create a client with its default site","security":[{"bearer":[]}],"parameters":[{"schema":{"type":"string","format":"uuid"},"required":true,"name":"id","in":"path"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","pattern":"^[A-Z0-9]{2,10}$"},"name":{"type":"string","minLength":1,"maxLength":500},"address":{"type":["string","null"],"minLength":1,"maxLength":500},"site":{"type":"object","properties":{"stateId":{"type":"string","format":"uuid"},"cityId":{"type":"string","format":"uuid"},"location":{"type":"string","minLength":1,"maxLength":100},"name":{"type":"string","minLength":1,"maxLength":500},"address":{"type":["string","null"],"minLength":1,"maxLength":500},"natureOfWork":{"type":["string","null"],"minLength":1,"maxLength":500},"workingHours":{"type":["string","null"],"minLength":1,"maxLength":500},"restInterval":{"type":["string","null"],"minLength":1,"maxLength":500},"active":{"type":"boolean"}},"required":["stateId","cityId","location"]}},"required":["code","name","site"]}}}},"responses":{"201":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/ClientWithSites"}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/clients/{id}":{"patch":{"summary":"Update a client (code never changes)","security":[{"bearer":[]}],"parameters":[{"schema":{"type":"string","format":"uuid"},"required":true,"name":"id","in":"path"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"name":{"type":"string","minLength":1,"maxLength":500},"address":{"type":["string","null"],"minLength":1,"maxLength":500},"active":{"type":"boolean"}},"additionalProperties":false}}}},"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Client"}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/clients/{id}/sites":{"get":{"summary":"Sites of a client","security":[{"bearer":[]}],"parameters":[{"schema":{"type":"string","format":"uuid"},"required":true,"name":"id","in":"path"}],"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/Site"}}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}},"post":{"summary":"Create a site; its code is generated","security":[{"bearer":[]}],"parameters":[{"schema":{"type":"string","format":"uuid"},"required":true,"name":"id","in":"path"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"stateId":{"type":"string","format":"uuid"},"cityId":{"type":"string","format":"uuid"},"location":{"type":"string","minLength":1,"maxLength":100},"name":{"type":"string","minLength":1,"maxLength":500},"address":{"type":["string","null"],"minLength":1,"maxLength":500},"natureOfWork":{"type":["string","null"],"minLength":1,"maxLength":500},"workingHours":{"type":["string","null"],"minLength":1,"maxLength":500},"restInterval":{"type":["string","null"],"minLength":1,"maxLength":500},"active":{"type":"boolean"}},"required":["stateId","cityId","location","name"]}}}},"responses":{"201":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Site"}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/sites/{id}":{"patch":{"summary":"Update a site (code, state, city never change)","security":[{"bearer":[]}],"parameters":[{"schema":{"type":"string","format":"uuid"},"required":true,"name":"id","in":"path"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"name":{"type":"string","minLength":1,"maxLength":500},"address":{"type":["string","null"],"minLength":1,"maxLength":500},"natureOfWork":{"type":["string","null"],"minLength":1,"maxLength":500},"workingHours":{"type":["string","null"],"minLength":1,"maxLength":500},"restInterval":{"type":["string","null"],"minLength":1,"maxLength":500},"active":{"type":"boolean"}},"additionalProperties":false}}}},"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Site"}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/companies/{id}/skill-categories":{"get":{"summary":"Skill categories of a company","security":[{"bearer":[]}],"parameters":[{"schema":{"type":"string","format":"uuid"},"required":true,"name":"id","in":"path"}],"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/SkillCategory"}}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}},"post":{"summary":"Create a skill category","security":[{"bearer":[]}],"parameters":[{"schema":{"type":"string","format":"uuid"},"required":true,"name":"id","in":"path"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"code":{"type":"string","pattern":"^[A-Z0-9_]{2,30}$"},"name":{"type":"string","minLength":1,"maxLength":500},"sortOrder":{"type":"integer"}},"required":["code","name"]}}}},"responses":{"201":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SkillCategory"}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/companies/{id}/minimum-wages":{"get":{"summary":"Minimum wage rates, newest first","security":[{"bearer":[]}],"parameters":[{"schema":{"type":"string","format":"uuid"},"required":true,"name":"id","in":"path"}],"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/MinimumWageRow"}}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}},"post":{"summary":"Add a minimum wage rate (no overlapping dates)","security":[{"bearer":[]}],"parameters":[{"schema":{"type":"string","format":"uuid"},"required":true,"name":"id","in":"path"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"skillCategoryId":{"type":"string","format":"uuid"},"validFrom":{"type":"string","format":"date"},"validTo":{"type":"string","format":"date"},"basic":{"anyOf":[{"type":"number"},{"type":"string","pattern":"^\\d+(\\.\\d+)?$"}]},"vda":{"anyOf":[{"type":"number"},{"type":"string","pattern":"^\\d+(\\.\\d+)?$"}]},"total":{"anyOf":[{"type":"number"},{"type":"string","pattern":"^\\d+(\\.\\d+)?$"}]},"overtimePerHour":{"anyOf":[{"type":"number"},{"type":"string","pattern":"^\\d+(\\.\\d+)?$"}]}},"required":["skillCategoryId","validFrom","validTo","basic","vda","total","overtimePerHour"]}}}},"responses":{"201":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/MinimumWage"}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/companies/{id}/designations":{"get":{"summary":"Designation → skill category mapping","security":[{"bearer":[]}],"parameters":[{"schema":{"type":"string","format":"uuid"},"required":true,"name":"id","in":"path"}],"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"type":"array","items":{"$ref":"#/components/schemas/DesignationSkill"}}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}},"put":{"summary":"Set one designation's skill category","security":[{"bearer":[]}],"parameters":[{"schema":{"type":"string","format":"uuid"},"required":true,"name":"id","in":"path"}],"requestBody":{"required":true,"content":{"application/json":{"schema":{"type":"object","properties":{"designation":{"type":"string","minLength":1,"maxLength":500},"skillCategoryId":{"type":"string","format":"uuid"}},"required":["designation","skillCategoryId"]}}}},"responses":{"200":{"description":"OK","content":{"application/json":{"schema":{"$ref":"#/components/schemas/DesignationSkill"}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}},"/clients/{id}/employees/seed":{"post":{"summary":"Upload a client's employee seed file (.xlsx, create only); dryRun=true previews without saving","security":[{"bearer":[]}],"parameters":[{"schema":{"type":"string","format":"uuid"},"required":true,"name":"id","in":"path"},{"schema":{"type":"string","enum":["true","false"]},"required":false,"name":"dryRun","in":"query"}],"requestBody":{"required":true,"content":{"application/vnd.openxmlformats-officedocument.spreadsheetml.sheet":{"schema":{"type":"string","format":"binary"}}}},"responses":{"200":{"description":"Checked (dry run) or saved","content":{"application/json":{"schema":{"$ref":"#/components/schemas/SeedResult"}}}},"400":{"description":"Invalid request","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"401":{"description":"Not signed in","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}},"422":{"description":"Row errors; nothing saved. details = [{ row, column, message }]","content":{"application/json":{"schema":{"$ref":"#/components/schemas/Error"}}}}}}}},"webhooks":{}}
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "SRMS API",
+    "version": "0.1.0"
+  },
+  "components": {
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "Health": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "ok",
+              "degraded"
+            ]
+          },
+          "checks": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string",
+              "enum": [
+                "up",
+                "down"
+              ]
+            }
+          }
+        },
+        "required": [
+          "status",
+          "checks"
+        ]
+      },
+      "AccessToken": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "accessToken"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {},
+              "requestId": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "code",
+              "message"
+            ]
+          }
+        },
+        "required": [
+          "error"
+        ]
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "lastLoginAt": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "name",
+          "active",
+          "lastLoginAt"
+        ]
+      },
+      "Invitation": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "expiresAt"
+        ]
+      },
+      "Me": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/User"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "tenant": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "name"
+                ]
+              }
+            },
+            "required": [
+              "tenant"
+            ]
+          }
+        ]
+      },
+      "ListMeta": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "type": "integer"
+          },
+          "offset": {
+            "type": "integer"
+          },
+          "total_items": {
+            "type": "integer"
+          },
+          "sort": {
+            "type": "string"
+          },
+          "order": {
+            "type": "string",
+            "enum": [
+              "asc",
+              "desc"
+            ]
+          },
+          "total_pages": {
+            "type": "integer"
+          },
+          "page": {
+            "type": "integer",
+            "description": "1-based"
+          },
+          "has_next_page": {
+            "type": "boolean"
+          },
+          "has_previous_page": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "limit",
+          "offset",
+          "total_items",
+          "sort",
+          "order",
+          "total_pages",
+          "page",
+          "has_next_page",
+          "has_previous_page"
+        ]
+      },
+      "City": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stateId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "stateId",
+          "code",
+          "name",
+          "aliases",
+          "active"
+        ]
+      },
+      "State": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "aliases": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "cities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/City"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "code",
+          "name",
+          "aliases",
+          "active",
+          "cities"
+        ]
+      },
+      "Company": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ownerName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "lin": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "pfCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "esicCode": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "ptRegNo": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "subContractorName": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "subContractorAddress": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "columnAliases": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "string"
+            }
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "tenantId",
+          "code",
+          "name",
+          "address",
+          "ownerName",
+          "lin",
+          "pfCode",
+          "esicCode",
+          "ptRegNo",
+          "subContractorName",
+          "subContractorAddress",
+          "columnAliases",
+          "active",
+          "createdAt"
+        ]
+      },
+      "Client": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "companyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "tenantId",
+          "companyId",
+          "code",
+          "name",
+          "address",
+          "active",
+          "createdAt"
+        ]
+      },
+      "Site": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "companyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "clientId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "stateId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "cityId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "siteCode": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "location": {
+            "type": "string"
+          },
+          "locationCode": {
+            "type": "string"
+          },
+          "natureOfWork": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "workingHours": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "restInterval": {
+            "type": [
+              "string",
+              "null"
+            ]
+          },
+          "isDefault": {
+            "type": "boolean"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "required": [
+          "id",
+          "tenantId",
+          "companyId",
+          "clientId",
+          "stateId",
+          "cityId",
+          "siteCode",
+          "name",
+          "address",
+          "location",
+          "locationCode",
+          "natureOfWork",
+          "workingHours",
+          "restInterval",
+          "isDefault",
+          "active",
+          "createdAt"
+        ]
+      },
+      "ClientWithSites": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/Client"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "sites": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/components/schemas/Site"
+                }
+              }
+            },
+            "required": [
+              "sites"
+            ]
+          }
+        ]
+      },
+      "SkillCategory": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "companyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "code": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "sortOrder": {
+            "type": "integer"
+          },
+          "active": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "tenantId",
+          "companyId",
+          "code",
+          "name",
+          "sortOrder",
+          "active"
+        ]
+      },
+      "MinimumWage": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "tenantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "companyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "skillCategoryId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "validFrom": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "validTo": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "basic": {
+            "type": "string",
+            "description": "decimal as string"
+          },
+          "vda": {
+            "type": "string",
+            "description": "decimal as string"
+          },
+          "total": {
+            "type": "string",
+            "description": "decimal as string"
+          },
+          "overtimePerHour": {
+            "type": "string",
+            "description": "decimal as string"
+          }
+        },
+        "required": [
+          "id",
+          "tenantId",
+          "companyId",
+          "skillCategoryId",
+          "validFrom",
+          "validTo",
+          "basic",
+          "vda",
+          "total",
+          "overtimePerHour"
+        ]
+      },
+      "MinimumWageRow": {
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/MinimumWage"
+          },
+          {
+            "type": "object",
+            "properties": {
+              "category": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "code",
+                  "name"
+                ]
+              }
+            },
+            "required": [
+              "category"
+            ]
+          }
+        ]
+      },
+      "DesignationSkill": {
+        "type": "object",
+        "properties": {
+          "tenantId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "companyId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "designation": {
+            "type": "string"
+          },
+          "skillCategoryId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "tenantId",
+          "companyId",
+          "designation",
+          "skillCategoryId"
+        ]
+      },
+      "SeedResult": {
+        "type": "object",
+        "properties": {
+          "dryRun": {
+            "type": "boolean"
+          },
+          "created": {
+            "type": "integer",
+            "description": "employees created (or that would be, on a dry run)"
+          },
+          "skipped": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "EMP_IDs already in the company"
+          },
+          "newSites": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "site codes created for new locations"
+          }
+        },
+        "required": [
+          "dryRun",
+          "created",
+          "skipped",
+          "newSites"
+        ]
+      }
+    },
+    "parameters": {}
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "summary": "Liveness of the API and its dependencies (database, renderer)",
+        "responses": {
+          "200": {
+            "description": "All dependencies up",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "A dependency is down",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Sign in; sets the refresh cookie",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  }
+                },
+                "required": [
+                  "email",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessToken"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "summary": "New access token from the refresh cookie (rotates it)",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AccessToken"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "summary": "Ends the login and clears the refresh cookie",
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "summary": "Emails a reset link if the account exists",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                },
+                "required": [
+                  "email"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "summary": "Sets a new password from the emailed token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 200
+                  }
+                },
+                "required": [
+                  "token",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/invitations/accept": {
+      "post": {
+        "summary": "Creates the user from an invitation token",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "token": {
+                    "type": "string"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "password": {
+                    "type": "string",
+                    "minLength": 10,
+                    "maxLength": 200
+                  }
+                },
+                "required": [
+                  "token",
+                  "name",
+                  "password"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/invitations": {
+      "post": {
+        "summary": "Invites an email to this tenant",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "format": "email"
+                  }
+                },
+                "required": [
+                  "email"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Invitation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/me": {
+      "get": {
+        "summary": "The signed-in user and tenant",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Me"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users": {
+      "get": {
+        "summary": "Users of this tenant",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 100
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "default": 0
+            },
+            "required": false,
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "inactive"
+              ]
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "a field of the row; each route lists the ones it allows"
+            },
+            "required": false,
+            "description": "a field of the row; each route lists the ones it allows",
+            "name": "sort",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            },
+            "required": false,
+            "name": "order",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/User"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ListMeta"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "meta"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/users/{id}": {
+      "patch": {
+        "summary": "Activate or deactivate a user",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "active": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "active"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/User"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/states": {
+      "get": {
+        "summary": "Active states with their cities",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/State"
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/companies": {
+      "get": {
+        "summary": "Companies of this tenant",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 100
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "default": 0
+            },
+            "required": false,
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "inactive"
+              ]
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "a field of the row; each route lists the ones it allows"
+            },
+            "required": false,
+            "description": "a field of the row; each route lists the ones it allows",
+            "name": "sort",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            },
+            "required": false,
+            "name": "order",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Company"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ListMeta"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "meta"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a company",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "pattern": "^[A-Z0-9]{2,6}$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "address": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "ownerName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "lin": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "pfCode": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "esicCode": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "ptRegNo": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "subContractorName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "subContractorAddress": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "columnAliases": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "code",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Company"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/companies/{id}": {
+      "patch": {
+        "summary": "Update a company",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "pattern": "^[A-Z0-9]{2,6}$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "address": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "ownerName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "lin": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "pfCode": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "esicCode": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "ptRegNo": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "subContractorName": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "subContractorAddress": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "columnAliases": {
+                    "type": "object",
+                    "additionalProperties": {
+                      "type": "string"
+                    }
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Company"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/companies/{id}/clients": {
+      "get": {
+        "summary": "Clients of a company",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 100
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "default": 0
+            },
+            "required": false,
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "inactive"
+              ]
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "a field of the row; each route lists the ones it allows"
+            },
+            "required": false,
+            "description": "a field of the row; each route lists the ones it allows",
+            "name": "sort",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            },
+            "required": false,
+            "name": "order",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Client"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ListMeta"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "meta"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a client with its default site",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "pattern": "^[A-Z0-9]{2,10}$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "address": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "site": {
+                    "type": "object",
+                    "properties": {
+                      "stateId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "cityId": {
+                        "type": "string",
+                        "format": "uuid"
+                      },
+                      "location": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 100
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "address": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "natureOfWork": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "workingHours": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "restInterval": {
+                        "type": [
+                          "string",
+                          "null"
+                        ],
+                        "minLength": 1,
+                        "maxLength": 500
+                      },
+                      "active": {
+                        "type": "boolean"
+                      }
+                    },
+                    "required": [
+                      "stateId",
+                      "cityId",
+                      "location"
+                    ]
+                  }
+                },
+                "required": [
+                  "code",
+                  "name",
+                  "site"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ClientWithSites"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clients/{id}": {
+      "patch": {
+        "summary": "Update a client (code never changes)",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "address": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Client"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clients/{id}/sites": {
+      "get": {
+        "summary": "Sites of a client",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 100
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "default": 0
+            },
+            "required": false,
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "inactive"
+              ]
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "a field of the row; each route lists the ones it allows"
+            },
+            "required": false,
+            "description": "a field of the row; each route lists the ones it allows",
+            "name": "sort",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            },
+            "required": false,
+            "name": "order",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/Site"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ListMeta"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "meta"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a site; its code is generated",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "stateId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "cityId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "location": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "address": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "natureOfWork": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "workingHours": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "restInterval": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "stateId",
+                  "cityId",
+                  "location",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Site"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/sites/{id}": {
+      "patch": {
+        "summary": "Update a site (code, state, city never change)",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "address": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "natureOfWork": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "workingHours": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "restInterval": {
+                    "type": [
+                      "string",
+                      "null"
+                    ],
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "active": {
+                    "type": "boolean"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Site"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/companies/{id}/skill-categories": {
+      "get": {
+        "summary": "Skill categories of a company",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 100
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "default": 0
+            },
+            "required": false,
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "inactive"
+              ]
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "a field of the row; each route lists the ones it allows"
+            },
+            "required": false,
+            "description": "a field of the row; each route lists the ones it allows",
+            "name": "sort",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            },
+            "required": false,
+            "name": "order",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/SkillCategory"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ListMeta"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "meta"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Create a skill category",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "code": {
+                    "type": "string",
+                    "pattern": "^[A-Z0-9_]{2,30}$"
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "sortOrder": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "code",
+                  "name"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SkillCategory"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/companies/{id}/minimum-wages": {
+      "get": {
+        "summary": "Minimum wage rates, newest first",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 100
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "default": 0
+            },
+            "required": false,
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "inactive"
+              ]
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "a field of the row; each route lists the ones it allows"
+            },
+            "required": false,
+            "description": "a field of the row; each route lists the ones it allows",
+            "name": "sort",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            },
+            "required": false,
+            "name": "order",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/MinimumWageRow"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ListMeta"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "meta"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Add a minimum wage rate (no overlapping dates)",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "skillCategoryId": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "validFrom": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "validTo": {
+                    "type": "string",
+                    "format": "date"
+                  },
+                  "basic": {
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^\\d+(\\.\\d+)?$"
+                      }
+                    ]
+                  },
+                  "vda": {
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^\\d+(\\.\\d+)?$"
+                      }
+                    ]
+                  },
+                  "total": {
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^\\d+(\\.\\d+)?$"
+                      }
+                    ]
+                  },
+                  "overtimePerHour": {
+                    "anyOf": [
+                      {
+                        "type": "number"
+                      },
+                      {
+                        "type": "string",
+                        "pattern": "^\\d+(\\.\\d+)?$"
+                      }
+                    ]
+                  }
+                },
+                "required": [
+                  "skillCategoryId",
+                  "validFrom",
+                  "validTo",
+                  "basic",
+                  "vda",
+                  "total",
+                  "overtimePerHour"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MinimumWage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/companies/{id}/designations": {
+      "get": {
+        "summary": "Designation → skill category mapping",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100,
+              "default": 100
+            },
+            "required": false,
+            "name": "limit",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": [
+                "integer",
+                "null"
+              ],
+              "minimum": 0,
+              "default": 0
+            },
+            "required": false,
+            "name": "offset",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 100
+            },
+            "required": false,
+            "name": "q",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "inactive"
+              ]
+            },
+            "required": false,
+            "name": "status",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "description": "a field of the row; each route lists the ones it allows"
+            },
+            "required": false,
+            "description": "a field of the row; each route lists the ones it allows",
+            "name": "sort",
+            "in": "query"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "asc",
+                "desc"
+              ]
+            },
+            "required": false,
+            "name": "order",
+            "in": "query"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "$ref": "#/components/schemas/DesignationSkill"
+                      }
+                    },
+                    "meta": {
+                      "$ref": "#/components/schemas/ListMeta"
+                    }
+                  },
+                  "required": [
+                    "data",
+                    "meta"
+                  ]
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Set one designation's skill category",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "designation": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 500
+                  },
+                  "skillCategoryId": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                },
+                "required": [
+                  "designation",
+                  "skillCategoryId"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DesignationSkill"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/clients/{id}/employees/seed": {
+      "post": {
+        "summary": "Upload a client's employee seed file (.xlsx, create only); dryRun=true previews without saving",
+        "security": [
+          {
+            "bearer": []
+          }
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "required": true,
+            "name": "id",
+            "in": "path"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "required": false,
+            "name": "dryRun",
+            "in": "query"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": {
+              "schema": {
+                "type": "string",
+                "format": "binary"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Checked (dry run) or saved",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SeedResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not signed in",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Row errors; nothing saved. details = [{ row, column, message }]",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "webhooks": {}
+}

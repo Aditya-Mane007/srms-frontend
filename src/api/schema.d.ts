@@ -522,7 +522,15 @@ export interface paths {
         /** Users of this tenant */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    limit?: number;
+                    offset?: number | null;
+                    q?: string;
+                    status?: "active" | "inactive";
+                    /** @description a field of the row; each route lists the ones it allows */
+                    sort?: string;
+                    order?: "asc" | "desc";
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -535,7 +543,10 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["User"][];
+                        "application/json": {
+                            data: components["schemas"]["User"][];
+                            meta: components["schemas"]["ListMeta"];
+                        };
                     };
                 };
                 /** @description Invalid request */
@@ -692,7 +703,15 @@ export interface paths {
         /** Companies of this tenant */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    limit?: number;
+                    offset?: number | null;
+                    q?: string;
+                    status?: "active" | "inactive";
+                    /** @description a field of the row; each route lists the ones it allows */
+                    sort?: string;
+                    order?: "asc" | "desc";
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -705,7 +724,10 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["Company"][];
+                        "application/json": {
+                            data: components["schemas"]["Company"][];
+                            meta: components["schemas"]["ListMeta"];
+                        };
                     };
                 };
                 /** @description Invalid request */
@@ -878,7 +900,15 @@ export interface paths {
         /** Clients of a company */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    limit?: number;
+                    offset?: number | null;
+                    q?: string;
+                    status?: "active" | "inactive";
+                    /** @description a field of the row; each route lists the ones it allows */
+                    sort?: string;
+                    order?: "asc" | "desc";
+                };
                 header?: never;
                 path: {
                     id: string;
@@ -893,7 +923,10 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["Client"][];
+                        "application/json": {
+                            data: components["schemas"]["Client"][];
+                            meta: components["schemas"]["ListMeta"];
+                        };
                     };
                 };
                 /** @description Invalid request */
@@ -1059,7 +1092,15 @@ export interface paths {
         /** Sites of a client */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    limit?: number;
+                    offset?: number | null;
+                    q?: string;
+                    status?: "active" | "inactive";
+                    /** @description a field of the row; each route lists the ones it allows */
+                    sort?: string;
+                    order?: "asc" | "desc";
+                };
                 header?: never;
                 path: {
                     id: string;
@@ -1074,7 +1115,10 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["Site"][];
+                        "application/json": {
+                            data: components["schemas"]["Site"][];
+                            meta: components["schemas"]["ListMeta"];
+                        };
                     };
                 };
                 /** @description Invalid request */
@@ -1238,7 +1282,15 @@ export interface paths {
         /** Skill categories of a company */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    limit?: number;
+                    offset?: number | null;
+                    q?: string;
+                    status?: "active" | "inactive";
+                    /** @description a field of the row; each route lists the ones it allows */
+                    sort?: string;
+                    order?: "asc" | "desc";
+                };
                 header?: never;
                 path: {
                     id: string;
@@ -1253,7 +1305,10 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["SkillCategory"][];
+                        "application/json": {
+                            data: components["schemas"]["SkillCategory"][];
+                            meta: components["schemas"]["ListMeta"];
+                        };
                     };
                 };
                 /** @description Invalid request */
@@ -1342,7 +1397,15 @@ export interface paths {
         /** Minimum wage rates, newest first */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    limit?: number;
+                    offset?: number | null;
+                    q?: string;
+                    status?: "active" | "inactive";
+                    /** @description a field of the row; each route lists the ones it allows */
+                    sort?: string;
+                    order?: "asc" | "desc";
+                };
                 header?: never;
                 path: {
                     id: string;
@@ -1357,7 +1420,10 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["MinimumWageRow"][];
+                        "application/json": {
+                            data: components["schemas"]["MinimumWageRow"][];
+                            meta: components["schemas"]["ListMeta"];
+                        };
                     };
                 };
                 /** @description Invalid request */
@@ -1453,7 +1519,15 @@ export interface paths {
         /** Designation → skill category mapping */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    limit?: number;
+                    offset?: number | null;
+                    q?: string;
+                    status?: "active" | "inactive";
+                    /** @description a field of the row; each route lists the ones it allows */
+                    sort?: string;
+                    order?: "asc" | "desc";
+                };
                 header?: never;
                 path: {
                     id: string;
@@ -1468,7 +1542,10 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["DesignationSkill"][];
+                        "application/json": {
+                            data: components["schemas"]["DesignationSkill"][];
+                            meta: components["schemas"]["ListMeta"];
+                        };
                     };
                 };
                 /** @description Invalid request */
@@ -1662,6 +1739,19 @@ export interface components {
                 id: string;
                 name: string;
             };
+        };
+        ListMeta: {
+            limit: number;
+            offset: number;
+            total_items: number;
+            sort: string;
+            /** @enum {string} */
+            order: "asc" | "desc";
+            total_pages: number;
+            /** @description 1-based */
+            page: number;
+            has_next_page: boolean;
+            has_previous_page: boolean;
         };
         City: {
             /** Format: uuid */

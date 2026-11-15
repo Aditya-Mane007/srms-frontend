@@ -1,20 +1,18 @@
-import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { useQueryClient } from "@tanstack/react-query"
 import { MailPlusIcon } from "lucide-react"
 import { toast } from "sonner"
 import { api, must } from "@/api/client"
 import { useAuth } from "@/auth"
 import { FormDialog } from "@/components/form-dialog"
 import { TextField } from "@/components/fields"
-import { ErrorText, Page, str } from "@/components/layout"
+import { Page, str } from "@/components/layout"
 import { DataTable, StatusBadge } from "@/components/data-table"
 import { Button } from "@/components/ui/button"
-import { TableCell, TableHead, TableRow } from "@/components/ui/table"
 
 export function UsersPage() {
   const qc = useQueryClient()
   const { auth } = useAuth()
   const meId = auth.status === "in" ? auth.me.id : ""
-  const { data: users, error } = useQuery({ queryKey: ["users"], queryFn: () => must(api.GET("/users")) })
 
   const setActive = async (id: string, active: boolean) => {
     try {
@@ -42,29 +40,27 @@ export function UsersPage() {
         </FormDialog>
       }
     >
-      <ErrorText error={error?.message} />
       <DataTable
-        rows={users}
+        id="users"
+        queryKey={["users"]}
+        fetch={(query) => api.GET("/users", { params: { query } })}
+        rowKey={(u) => u.id}
         searchLabel="Search users"
-        text={(u) => `${u.name} ${u.email}`}
-        filter={{ label: "Status", options: { All: () => true, Active: (u) => u.active, Disabled: (u) => !u.active } }}
-        head={<><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Last sign-in</TableHead><TableHead>Status</TableHead><TableHead><span className="sr-only">Actions</span></TableHead></>}
-        row={(u) => (
-          <TableRow key={u.id}>
-            <TableCell>{u.name}</TableCell>
-            <TableCell>{u.email}</TableCell>
-            <TableCell>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString("en-IN") : "Never"}</TableCell>
-            <TableCell><StatusBadge active={u.active} off="Disabled" /></TableCell>
-            <TableCell className="text-right">
-              {u.id !== meId && (
-                <Button variant="ghost" size="sm" onClick={() => setActive(u.id, !u.active)}>
-                  {u.active ? "Disable" : "Enable"}
-                  <span className="sr-only"> {u.name}</span>
-                </Button>
-              )}
-            </TableCell>
-          </TableRow>
-        )}
+        status={{ active: "Active", inactive: "Disabled" }}
+        columns={[
+          { key: "name", label: "Name", cell: (u) => u.name },
+          { key: "email", label: "Email", cell: (u) => u.email },
+          { key: "lastLogin", label: "Last sign-in", cell: (u) => (u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString("en-IN") : "Never") },
+          { key: "status", label: "Status", cell: (u) => <StatusBadge active={u.active} off="Disabled" /> },
+        ]}
+        actions={(u) =>
+          u.id !== meId && (
+            <Button variant="ghost" size="sm" onClick={() => setActive(u.id, !u.active)}>
+              {u.active ? "Disable" : "Enable"}
+              <span className="sr-only"> {u.name}</span>
+            </Button>
+          )
+        }
       />
     </Page>
   )

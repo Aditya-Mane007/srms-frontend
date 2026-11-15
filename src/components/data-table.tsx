@@ -1,12 +1,21 @@
 import { useState, type ReactNode } from "react"
-import { CheckIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, SearchIcon } from "lucide-react"
+import { useSearchParams } from "react-router"
+import { keepPreviousData, useQuery } from "@tanstack/react-query"
+import { CheckIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, Columns3Icon, RefreshCwIcon, SearchIcon } from "lucide-react"
+import { must, type Schemas } from "@/api/client"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import {
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHeader, TableRow } from "@/components/ui/table"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
-/** Active / inactive pill, coloured like the reference table; the word carries the meaning, not the colour. */
+/** Active / inactive pill; the word carries the meaning, not the colour. */
 export function StatusBadge({ active, off = "Inactive" }: { active: boolean; off?: string }) {
   return active ? (
     <Badge className="bg-green-500/10 text-green-700 dark:text-green-400">Active</Badge>
@@ -15,50 +24,94 @@ export function StatusBadge({ active, off = "Inactive" }: { active: boolean; off
   )
 }
 
-/** Filter options for anything with `active`. */
-export const activeFilter = {
-  label: "Status",
-  options: { "All": () => true, "Active": (r: { active: boolean }) => r.active, "Inactive": (r: { active: boolean }) => !r.active },
+export type ListParams = { limit: number; offset: number; q?: string; status?: "active" | "inactive" }
+type Meta = Schemas["ListMeta"]
+export type Column<T> = { key: string; label: string; cell: (r: T) => ReactNode; className?: string }
+
+const SIZES = [10, 20, 50, 100]
+
+function readHidden(id: string): string[] {
+  try {
+    return JSON.parse(localStorage.getItem(`srms.cols.${id}`) ?? "[]")
+  } catch {
+    return []
+  }
 }
 
 /**
- * List table: search box, optional filter menu, rounded bordered table, pages.
- * Filtering and paging happen in the browser.
- * shortcut: client-side only; move search/paging to the API once a list (employees) gets large.
+ * Server-driven list table. Search, status filter, page and page size live in the URL
+ * (`<id>_q`, `<id>_status`, `<id>_page`, `<id>_size`), so a reload or a shared link keeps them.
+ * Hidden columns are a per-browser preference (localStorage).
  */
 export function DataTable<T>({
-  rows,
-  head,
-  row,
-  text,
+  id,
+  queryKey,
+  fetch,
+  columns,
+  rowKey,
+  actions,
   searchLabel = "Search",
-  filter,
+  status,
   empty = "Nothing here yet.",
-  pageSize = 10,
 }: {
-  rows: T[] | undefined
-  /** the header cells (TableHead elements) */
-  head: ReactNode
-  /** one TableRow per item */
-  row: (r: T) => ReactNode
-  /** the text the search box matches against */
-  text: (r: T) => string
+  /** short and unique per page; prefixes the URL keys */
+  id: string
+  /** starts with the key mutations invalidate, e.g. ["sites", clientId] */
+  queryKey: unknown[]
+  fetch: (q: ListParams) => Promise<{ data?: { data: T[]; meta: Meta }; error?: unknown }>
+  columns: Column<T>[]
+  rowKey: (r: T) => string
+  /** the last cell of each row (buttons); never hidden */
+  actions?: (r: T) => ReactNode
   searchLabel?: string
-  filter?: { label: string; options: Record<string, (r: T) => boolean> }
+  /** labels for the status filter; omit for lists without a status */
+  status?: { active: string; inactive: string }
   empty?: string
-  pageSize?: number
 }) {
-  const [q, setQ] = useState("")
-  const [f, setF] = useState(filter ? Object.keys(filter.options)[0] : "")
-  const [page, setPage] = useState(0)
+  const [sp, setSp] = useSearchParams()
+  const k = (n: string) => `${id}_${n}`
+  const q = sp.get(k("q")) ?? ""
+  const st = sp.get(k("status")) as ListParams["status"] | null
+  const size = SIZES.includes(Number(sp.get(k("size")))) ? Number(sp.get(k("size"))) : SIZES[0]
+  const pageNo = Math.max(1, Number(sp.get(k("page"))) || 1)
 
-  const needle = q.trim().toLowerCase()
-  const shown = (rows ?? []).filter(
-    (r) => (!filter || filter.options[f](r)) && (!needle || text(r).toLowerCase().includes(needle)),
-  )
-  const pages = Math.max(1, Math.ceil(shown.length / pageSize))
-  const p = Math.min(page, pages - 1)
-  const cols = 20 // colSpan larger than any table here
+  /** Writes URL keys (empty = removed); any change other than the page goes back to page 1. */
+  const set = (changes: Record<string, string | number | null>) =>
+    setSp(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        if (!("page" in changes)) next.delete(k("page"))
+        for (const [n, v] of Object.entries(changes)) {
+          if (v === null || v === "" || (n === "page" && v === 1)) next.delete(k(n))
+          else next.set(k(n), String(v))
+        }
+        return next
+      },
+      { replace: true },
+    )
+
+  const params: ListParams = { limit: size, offset: (pageNo - 1) * size, ...(q.trim() && { q: q.trim() }), ...(st && { status: st }) }
+  const { data, error, isFetching, refetch } = useQuery({
+    queryKey: [...queryKey, "list", params],
+    queryFn: () => must(fetch(params)),
+    placeholderData: keepPreviousData,
+  })
+  const rows = data?.data
+  const meta = data?.meta
+
+  const [hidden, setHidden] = useState(() => readHidden(id))
+  const toggle = (key: string) => {
+    const next = hidden.includes(key) ? hidden.filter((h) => h !== key) : [...hidden, key]
+    setHidden(next)
+    try {
+      localStorage.setItem(`srms.cols.${id}`, JSON.stringify(next))
+    } catch {
+      /* preference only */
+    }
+  }
+  const shown = columns.filter((c) => !hidden.includes(c.key))
+  const span = shown.length + (actions ? 1 : 0)
+  const statusText = st ? status?.[st] : "All"
 
   return (
     <div className="flex flex-col gap-3">
@@ -71,50 +124,78 @@ export function DataTable<T>({
             placeholder={`${searchLabel}…`}
             className="pl-8"
             value={q}
-            onChange={(e) => {
-              setQ(e.target.value)
-              setPage(0)
-            }}
+            onChange={(e) => set({ q: e.target.value })}
           />
         </div>
-        {filter && (
+        <div className="flex flex-wrap items-center gap-2">
+          {status && (
+            <DropdownMenu>
+              <DropdownMenuTrigger render={<Button variant="outline" />}>
+                Status: {statusText} <ChevronDownIcon />
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                {([null, "active", "inactive"] as const).map((v) => (
+                  <DropdownMenuItem key={v ?? "all"} onClick={() => set({ status: v })}>
+                    <CheckIcon className={v === st ? "" : "invisible"} aria-hidden /> {v ? status[v] : "All"}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          )}
           <DropdownMenu>
             <DropdownMenuTrigger render={<Button variant="outline" />}>
-              {filter.label}: {f} <ChevronDownIcon />
+              <Columns3Icon /> Columns
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              {Object.keys(filter.options).map((k) => (
-                <DropdownMenuItem
-                  key={k}
-                  onClick={() => {
-                    setF(k)
-                    setPage(0)
-                  }}
+              {columns.map((c) => (
+                <DropdownMenuCheckboxItem
+                  key={c.key}
+                  checked={!hidden.includes(c.key)}
+                  // keep at least one column
+                  disabled={shown.length === 1 && !hidden.includes(c.key)}
+                  onCheckedChange={() => toggle(c.key)}
                 >
-                  <CheckIcon className={k === f ? "" : "invisible"} aria-hidden /> {k}
-                </DropdownMenuItem>
+                  {c.label}
+                </DropdownMenuCheckboxItem>
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-        )}
+          <Button variant="outline" size="icon" aria-label="Refresh" title="Refresh" onClick={() => refetch()} disabled={isFetching}>
+            <RefreshCwIcon className={isFetching ? "animate-spin" : ""} />
+          </Button>
+        </div>
       </div>
+
+      {error && <p role="alert" className="text-sm text-destructive">{error.message}</p>}
 
       <div className="overflow-hidden rounded-lg border">
         <Table>
           <TableHeader className="bg-muted/50">
-            <TableRow>{head}</TableRow>
+            <TableRow>
+              {shown.map((c) => (
+                <TableHead key={c.key} className={c.className}>{c.label}</TableHead>
+              ))}
+              {actions && <TableHead><span className="sr-only">Actions</span></TableHead>}
+            </TableRow>
           </TableHeader>
-          <TableBody>
-            {rows === undefined ? (
+          <TableBody aria-busy={isFetching}>
+            {!rows ? (
               <TableRow>
-                <TableCell colSpan={cols} className="h-16 text-center text-muted-foreground" role="status">Loading…</TableCell>
+                <TableCell colSpan={span} className="h-16 text-center text-muted-foreground" role="status">Loading…</TableCell>
               </TableRow>
-            ) : shown.length ? (
-              shown.slice(p * pageSize, (p + 1) * pageSize).map(row)
+            ) : rows.length ? (
+              rows.map((r) => (
+                <TableRow key={rowKey(r)}>
+                  {shown.map((c) => (
+                    <TableCell key={c.key} className={c.className}>{c.cell(r)}</TableCell>
+                  ))}
+                  {actions && <TableCell className="text-right">{actions(r)}</TableCell>}
+                </TableRow>
+              ))
             ) : (
               <TableRow>
-                <TableCell colSpan={cols} className="h-16 text-center text-muted-foreground">
-                  {rows.length ? "No matches." : empty}
+                <TableCell colSpan={span} className="h-16 text-center text-muted-foreground">
+                  {q || st ? "No matches." : empty}
                 </TableCell>
               </TableRow>
             )}
@@ -122,32 +203,59 @@ export function DataTable<T>({
         </Table>
       </div>
 
-      {pages > 1 && (
-        <nav aria-label="Pages" className="flex items-center justify-end gap-1">
-          <Button variant="ghost" size="sm" disabled={p === 0} onClick={() => setPage(p - 1)}>
-            <ChevronLeftIcon /> Previous
-          </Button>
-          {Array.from({ length: pages }, (_, i) => i)
-            .filter((i) => i === 0 || i === pages - 1 || Math.abs(i - p) <= 1)
-            .map((i, k, arr) => (
-              <span key={i} className="flex items-center gap-1">
-                {k > 0 && i - arr[k - 1] > 1 && <span aria-hidden className="px-1 text-muted-foreground">…</span>}
-                <Button
-                  variant={i === p ? "outline" : "ghost"}
-                  size="icon-sm"
-                  aria-current={i === p ? "page" : undefined}
-                  aria-label={`Page ${i + 1}`}
-                  onClick={() => setPage(i)}
-                >
-                  {i + 1}
-                </Button>
-              </span>
+      {meta && <Pager meta={meta} size={size} onPage={(p) => set({ page: p })} onSize={(s) => set({ size: s === SIZES[0] ? null : s })} />}
+    </div>
+  )
+}
+
+function Pager({ meta, size, onPage, onSize }: { meta: Meta; size: number; onPage: (p: number) => void; onSize: (s: number) => void }) {
+  const p = meta.page
+  const pages = Math.max(1, meta.total_pages)
+  const from = meta.total_items ? meta.offset + 1 : 0
+  const to = Math.min(meta.offset + meta.limit, meta.total_items)
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
+      <div className="flex items-center gap-2 text-muted-foreground">
+        <label className="flex items-center gap-2">
+          Rows per page
+          <select
+            className="h-8 rounded-lg border border-input bg-transparent px-2 text-foreground dark:bg-input/30"
+            value={size}
+            onChange={(e) => onSize(Number(e.target.value))}
+          >
+            {SIZES.map((s) => (
+              <option key={s} value={s}>{s}</option>
             ))}
-          <Button variant="ghost" size="sm" disabled={p === pages - 1} onClick={() => setPage(p + 1)}>
-            Next <ChevronRightIcon />
-          </Button>
-        </nav>
-      )}
+          </select>
+        </label>
+        <span aria-live="polite">
+          {from}–{to} of {meta.total_items}
+        </span>
+      </div>
+      <nav aria-label="Pages" className="flex items-center gap-1">
+        <Button variant="ghost" size="sm" disabled={!meta.has_previous_page} onClick={() => onPage(p - 1)}>
+          <ChevronLeftIcon /> Previous
+        </Button>
+        {Array.from({ length: pages }, (_, i) => i + 1)
+          .filter((i) => i === 1 || i === pages || Math.abs(i - p) <= 1)
+          .map((i, n, arr) => (
+            <span key={i} className="flex items-center gap-1">
+              {n > 0 && i - arr[n - 1] > 1 && <span aria-hidden className="px-1 text-muted-foreground">…</span>}
+              <Button
+                variant={i === p ? "outline" : "ghost"}
+                size="icon-sm"
+                aria-current={i === p ? "page" : undefined}
+                aria-label={`Page ${i}`}
+                onClick={() => onPage(i)}
+              >
+                {i}
+              </Button>
+            </span>
+          ))}
+        <Button variant="ghost" size="sm" disabled={!meta.has_next_page} onClick={() => onPage(p + 1)}>
+          Next <ChevronRightIcon />
+        </Button>
+      </nav>
     </div>
   )
 }

@@ -3,20 +3,20 @@ import { useQuery } from "@tanstack/react-query"
 import { api, must } from "@/api/client"
 
 export const useCompanies = () =>
-  useQuery({ queryKey: ["companies"], queryFn: () => must(api.GET("/companies")) })
+  useQuery({ queryKey: ["companies"], queryFn: () => must(api.GET("/companies")).then((r) => r.data) })
 
 export const useClients = (companyId?: string) =>
   useQuery({
     queryKey: ["clients", companyId],
     enabled: !!companyId,
-    queryFn: () => must(api.GET("/companies/{id}/clients", { params: { path: { id: companyId! } } })),
+    queryFn: () => must(api.GET("/companies/{id}/clients", { params: { path: { id: companyId! } } })).then((r) => r.data),
   })
 
 export const useSites = (clientId?: string) =>
   useQuery({
     queryKey: ["sites", clientId],
     enabled: !!clientId,
-    queryFn: () => must(api.GET("/clients/{id}/sites", { params: { path: { id: clientId! } } })),
+    queryFn: () => must(api.GET("/clients/{id}/sites", { params: { path: { id: clientId! } } })).then((r) => r.data),
   })
 
 export const useStates = () =>
@@ -26,21 +26,21 @@ export const useSkillCategories = (companyId?: string) =>
   useQuery({
     queryKey: ["skill-categories", companyId],
     enabled: !!companyId,
-    queryFn: () => must(api.GET("/companies/{id}/skill-categories", { params: { path: { id: companyId! } } })),
+    queryFn: () => must(api.GET("/companies/{id}/skill-categories", { params: { path: { id: companyId! } } })).then((r) => r.data),
   })
 
 export const useMinimumWages = (companyId?: string) =>
   useQuery({
     queryKey: ["minimum-wages", companyId],
     enabled: !!companyId,
-    queryFn: () => must(api.GET("/companies/{id}/minimum-wages", { params: { path: { id: companyId! } } })),
+    queryFn: () => must(api.GET("/companies/{id}/minimum-wages", { params: { path: { id: companyId! } } })).then((r) => r.data),
   })
 
 export const useDesignations = (companyId?: string) =>
   useQuery({
     queryKey: ["designations", companyId],
     enabled: !!companyId,
-    queryFn: () => must(api.GET("/companies/{id}/designations", { params: { path: { id: companyId! } } })),
+    queryFn: () => must(api.GET("/companies/{id}/designations", { params: { path: { id: companyId! } } })).then((r) => r.data),
   })
 
 /** "EGL Blue Bay" -> "EGL-BLUE-BAY"; same rule as the backend's locationCode. */

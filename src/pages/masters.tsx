@@ -9,7 +9,6 @@ import { FormDialog } from "@/components/form-dialog"
 import { TextField } from "@/components/fields"
 import { ErrorText, NativeSelect, Page, str } from "@/components/layout"
 import { Field, FieldLabel } from "@/components/ui/field"
-import { TableCell, TableHead, TableRow } from "@/components/ui/table"
 
 /** Backend dates are YYYY-MM-DD (or ISO); registers show DD-MM-YYYY. */
 const ddmmyyyy = (d: string) => d.slice(0, 10).split("-").reverse().join("-")
@@ -76,13 +75,15 @@ export function MastersPage() {
       >
         <ErrorText error={cats.error?.message} />
         <DataTable
-          rows={cats.data}
+          id="cats"
+          queryKey={["skill-categories", companyId]}
+          fetch={(query) => api.GET("/companies/{id}/skill-categories", { params: { path: { id: companyId }, query } })}
+          rowKey={(c) => c.id}
           searchLabel="Search categories"
-          text={(c) => `${c.code} ${c.name}`}
-          head={<><TableHead>Code</TableHead><TableHead>Name</TableHead></>}
-          row={(c) => (
-              <TableRow key={c.id}><TableCell className="font-mono">{c.code}</TableCell><TableCell>{c.name}</TableCell></TableRow>
-          )}
+          columns={[
+            { key: "code", label: "Code", className: "font-mono", cell: (c) => c.code },
+            { key: "name", label: "Name", cell: (c) => c.name },
+          ]}
         />
       </Section>
 
@@ -124,20 +125,19 @@ export function MastersPage() {
       >
         <ErrorText error={wages.error?.message} />
         <DataTable
-          rows={wages.data}
-          searchLabel="Search rates"
-          text={(w) => w.category.name}
-          head={<><TableHead>Category</TableHead><TableHead>Valid</TableHead><TableHead className="text-right">Basic</TableHead><TableHead className="text-right">VDA</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">OT/hour</TableHead></>}
-          row={(w) => (
-              <TableRow key={w.id}>
-                <TableCell>{w.category.name}</TableCell>
-                <TableCell>{ddmmyyyy(w.validFrom)} to {ddmmyyyy(w.validTo)}</TableCell>
-                <TableCell className="text-right tabular-nums">{w.basic}</TableCell>
-                <TableCell className="text-right tabular-nums">{w.vda}</TableCell>
-                <TableCell className="text-right tabular-nums">{w.total}</TableCell>
-                <TableCell className="text-right tabular-nums">{w.overtimePerHour}</TableCell>
-              </TableRow>
-          )}
+          id="wages"
+          queryKey={["minimum-wages", companyId]}
+          fetch={(query) => api.GET("/companies/{id}/minimum-wages", { params: { path: { id: companyId }, query } })}
+          rowKey={(w) => w.id}
+          searchLabel="Search by category"
+          columns={[
+            { key: "category", label: "Category", cell: (w) => w.category.name },
+            { key: "valid", label: "Valid", cell: (w) => `${ddmmyyyy(w.validFrom)} to ${ddmmyyyy(w.validTo)}` },
+            { key: "basic", label: "Basic", className: "text-right tabular-nums", cell: (w) => w.basic },
+            { key: "vda", label: "VDA", className: "text-right tabular-nums", cell: (w) => w.vda },
+            { key: "total", label: "Total", className: "text-right tabular-nums", cell: (w) => w.total },
+            { key: "ot", label: "OT/hour", className: "text-right tabular-nums", cell: (w) => w.overtimePerHour },
+          ]}
         />
       </Section>
 
@@ -161,13 +161,15 @@ export function MastersPage() {
       >
         <ErrorText error={desigs.error?.message} />
         <DataTable
-          rows={desigs.data}
+          id="desig"
+          queryKey={["designations", companyId]}
+          fetch={(query) => api.GET("/companies/{id}/designations", { params: { path: { id: companyId }, query } })}
+          rowKey={(d) => d.designation}
           searchLabel="Search designations"
-          text={(d) => `${d.designation} ${catName(d.skillCategoryId)}`}
-          head={<><TableHead>Designation</TableHead><TableHead>Skill category</TableHead></>}
-          row={(d) => (
-              <TableRow key={d.designation}><TableCell>{d.designation}</TableCell><TableCell>{catName(d.skillCategoryId)}</TableCell></TableRow>
-          )}
+          columns={[
+            { key: "designation", label: "Designation", cell: (d) => d.designation },
+            { key: "category", label: "Skill category", cell: (d) => catName(d.skillCategoryId) },
+          ]}
         />
       </Section>
     </Page>

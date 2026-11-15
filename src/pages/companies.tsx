@@ -4,14 +4,13 @@ import { useQueryClient } from "@tanstack/react-query"
 import { PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 import { api, must, type Schemas } from "@/api/client"
-import { useClients, useCompanies, useSelection, useSites } from "@/data"
+import { useClients, useCompanies, useSelection } from "@/data"
 import { EmployeeSeedUpload } from "@/components/employee-seed"
-import { DataTable, StatusBadge, activeFilter } from "@/components/data-table"
+import { DataTable, StatusBadge } from "@/components/data-table"
 import { FormDialog } from "@/components/form-dialog"
 import { PlaceFields, SiteDetailFields, TextField } from "@/components/fields"
-import { ErrorText, optStr, Page, str } from "@/components/layout"
+import { optStr, Page, str } from "@/components/layout"
 import { Badge } from "@/components/ui/badge"
-import { TableCell, TableHead, TableRow } from "@/components/ui/table"
 
 const status = (active: boolean) => <StatusBadge active={active} />
 
@@ -48,7 +47,6 @@ const companyBody = (d: FormData) => ({
 export function CompaniesPage() {
   const qc = useQueryClient()
   const { select } = useSelection()
-  const { data: companies, error, isPending } = useCompanies()
   return (
     <Page
       crumbs={[{ label: "Companies" }]}
@@ -67,25 +65,27 @@ export function CompaniesPage() {
         </FormDialog>
       }
     >
-      <ErrorText error={error?.message} />
       <DataTable
-        rows={isPending ? undefined : (companies ?? [])}
+        id="companies"
+        queryKey={["companies"]}
+        fetch={(query) => api.GET("/companies", { params: { query } })}
+        rowKey={(c) => c.id}
         searchLabel="Search companies"
-        text={(c) => `${c.code} ${c.name}`}
-        filter={activeFilter}
+        status={{ active: "Active", inactive: "Inactive" }}
         empty="No companies yet. Add the first company to start."
-        head={<><TableHead>Code</TableHead><TableHead>Name</TableHead><TableHead>Status</TableHead></>}
-        row={(c) => (
-          <TableRow key={c.id}>
-            <TableCell className="font-mono">{c.code}</TableCell>
-            <TableCell>
+        columns={[
+          { key: "code", label: "Code", className: "font-mono", cell: (c) => c.code },
+          {
+            key: "name",
+            label: "Name",
+            cell: (c) => (
               <Link className="underline-offset-2 hover:underline" to={`/companies/${c.id}`} onClick={() => select({ companyId: c.id })}>
                 {c.name}
               </Link>
-            </TableCell>
-            <TableCell>{status(c.active)}</TableCell>
-          </TableRow>
-        )}
+            ),
+          },
+          { key: "status", label: "Status", cell: (c) => status(c.active) },
+        ]}
       />
     </Page>
   )
@@ -95,7 +95,6 @@ export function CompanyPage() {
   const { companyId = "" } = useParams()
   const qc = useQueryClient()
   const { data: companies } = useCompanies()
-  const { data: clients = [], error } = useClients(companyId)
   const company = companies?.find((c) => c.id === companyId)
   if (!company) return <Page crumbs={[{ label: "Companies", to: "/companies" }, { label: companies ? "Not found" : "Loading…" }]}>{null}</Page>
 
@@ -172,25 +171,27 @@ export function CompanyPage() {
             <ClientCreateFields />
           </FormDialog>
         </div>
-        <ErrorText error={error?.message} />
-        <DataTable
-          rows={clients}
+          <DataTable
+          id="clients"
+          queryKey={["clients", company.id]}
+          fetch={(query) => api.GET("/companies/{id}/clients", { params: { path: { id: company.id }, query } })}
+          rowKey={(c) => c.id}
           searchLabel="Search clients"
-          text={(c) => `${c.code} ${c.name}`}
-          filter={activeFilter}
+          status={{ active: "Active", inactive: "Inactive" }}
           empty="No clients yet."
-          head={<><TableHead>Code</TableHead><TableHead>Name</TableHead><TableHead>Status</TableHead></>}
-          row={(c) => (
-            <TableRow key={c.id}>
-              <TableCell className="font-mono">{c.code}</TableCell>
-              <TableCell>
+          columns={[
+            { key: "code", label: "Code", className: "font-mono", cell: (c) => c.code },
+            {
+              key: "name",
+              label: "Name",
+              cell: (c) => (
                 <Link className="underline-offset-2 hover:underline" to={`/companies/${company.id}/clients/${c.id}`}>
                   {c.name}
                 </Link>
-              </TableCell>
-              <TableCell>{status(c.active)}</TableCell>
-            </TableRow>
-          )}
+              ),
+            },
+            { key: "status", label: "Status", cell: (c) => status(c.active) },
+          ]}
         />
       </section>
     </Page>
@@ -218,7 +219,6 @@ export function ClientPage() {
   const { data: clients } = useClients(companyId)
   const company = companies?.find((c) => c.id === companyId)
   const client = clients?.find((c) => c.id === clientId)
-  const { data: sites = [], error: sitesError } = useSites(clientId)
   const base = [{ label: "Companies", to: "/companies" }, { label: company?.name ?? "…", to: `/companies/${companyId}` }]
   if (!client) return <Page crumbs={[...base, { label: clients ? "Not found" : "Loading…" }]}>{null}</Page>
   const refresh = () => Promise.all([qc.invalidateQueries({ queryKey: ["clients", companyId] }), qc.invalidateQueries({ queryKey: ["sites", clientId] })])
@@ -284,49 +284,45 @@ export function ClientPage() {
             <SiteDetailFields />
           </FormDialog>
         </div>
-        <ErrorText error={sitesError?.message} />
         <DataTable
-          rows={sites}
+          id="sites"
+          queryKey={["sites", client.id]}
+          fetch={(query) => api.GET("/clients/{id}/sites", { params: { path: { id: client.id }, query } })}
+          rowKey={(s) => s.id}
           searchLabel="Search sites"
-          text={(s) => `${s.siteCode} ${s.name}`}
-          filter={activeFilter}
+          status={{ active: "Active", inactive: "Inactive" }}
           empty="No sites yet."
-          head={<><TableHead>Site code</TableHead><TableHead>Name</TableHead><TableHead>Status</TableHead><TableHead><span className="sr-only">Actions</span></TableHead></>}
-          row={(s) => (
-              <TableRow key={s.id}>
-                <TableCell className="font-mono">{s.siteCode}</TableCell>
-                <TableCell>
-                  {s.name} {s.isDefault && <Badge variant="outline">Default</Badge>}
-                </TableCell>
-                <TableCell>{status(s.active)}</TableCell>
-                <TableCell className="text-right">
-                  <FormDialog
-                    trigger="Edit"
-                    title={`Edit site ${s.siteCode}`}
-                    onSave={async (d) => {
-                      await must(
-                        api.PATCH("/sites/{id}", {
-                          params: { path: { id: s.id } },
-                          body: {
-                            name: str(d, "name") || s.name,
-                            address: optStr(d, "address"),
-                            natureOfWork: optStr(d, "natureOfWork"),
-                            workingHours: optStr(d, "workingHours"),
-                            restInterval: optStr(d, "restInterval"),
-                            active: d.get("active") === "on",
-                          },
-                        }),
-                      )
-                      await refresh()
-                      toast.success("Site saved")
-                    }}
-                  >
-                    <p className="text-sm text-muted-foreground">State, city and location can't change: a move is a new site.</p>
-                    <SiteDetailFields site={s} />
-                    <ActiveField active={s.active} hint="Inactive sites are kept, never deleted." />
-                  </FormDialog>
-                </TableCell>
-              </TableRow>
+          columns={[
+            { key: "siteCode", label: "Site code", className: "font-mono", cell: (s) => s.siteCode },
+            { key: "name", label: "Name", cell: (s) => <>{s.name} {s.isDefault && <Badge variant="outline">Default</Badge>}</> },
+            { key: "status", label: "Status", cell: (s) => status(s.active) },
+          ]}
+          actions={(s) => (
+            <FormDialog
+              trigger="Edit"
+              title={`Edit site ${s.siteCode}`}
+              onSave={async (d) => {
+                await must(
+                  api.PATCH("/sites/{id}", {
+                    params: { path: { id: s.id } },
+                    body: {
+                      name: str(d, "name") || s.name,
+                      address: optStr(d, "address"),
+                      natureOfWork: optStr(d, "natureOfWork"),
+                      workingHours: optStr(d, "workingHours"),
+                      restInterval: optStr(d, "restInterval"),
+                      active: d.get("active") === "on",
+                    },
+                  }),
+                )
+                await refresh()
+                toast.success("Site saved")
+              }}
+            >
+              <p className="text-sm text-muted-foreground">State, city and location can't change: a move is a new site.</p>
+              <SiteDetailFields site={s} />
+              <ActiveField active={s.active} hint="Inactive sites are kept, never deleted." />
+            </FormDialog>
           )}
         />
       </section>
