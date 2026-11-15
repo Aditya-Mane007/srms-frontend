@@ -649,7 +649,15 @@ export interface paths {
         /** Active states with their cities */
         get: {
             parameters: {
-                query?: never;
+                query?: {
+                    limit?: number;
+                    offset?: number | null;
+                    q?: string;
+                    status?: "active" | "inactive";
+                    /** @description a field of the row; each route lists the ones it allows */
+                    sort?: string;
+                    order?: "asc" | "desc";
+                };
                 header?: never;
                 path?: never;
                 cookie?: never;
@@ -662,7 +670,10 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["State"][];
+                        "application/json": {
+                            data: components["schemas"]["State"][];
+                            meta: components["schemas"]["ListMeta"];
+                        };
                     };
                 };
                 /** @description Invalid request */

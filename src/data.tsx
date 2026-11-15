@@ -20,7 +20,7 @@ export const useSites = (clientId?: string) =>
   })
 
 export const useStates = () =>
-  useQuery({ queryKey: ["states"], staleTime: Infinity, queryFn: () => must(api.GET("/states")) })
+  useQuery({ queryKey: ["states"], staleTime: Infinity, queryFn: () => must(api.GET("/states")).then((r) => r.data) })
 
 export const useSkillCategories = (companyId?: string) =>
   useQuery({
