@@ -155,3 +155,28 @@
     @apply font-heading;
   }
 }
+
+/* Thin themed scrollbars everywhere (page, dialogs, tables) */
+:root {
+  --sb-track-color: var(--secondary);
+  --sb-thumb-color: var(--primary);
+  --sb-size: 8px;
+}
+::-webkit-scrollbar {
+  width: var(--sb-size);
+  height: var(--sb-size);
+}
+::-webkit-scrollbar-track {
+  background: var(--sb-track-color);
+  border-radius: 10px;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--sb-thumb-color);
+  border-radius: 10px;
+}
+@supports not selector(::-webkit-scrollbar) {
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--sb-thumb-color) var(--sb-track-color);
+  }
+}
