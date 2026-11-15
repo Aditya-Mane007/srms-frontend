@@ -193,7 +193,7 @@ export function DataTable<T>({
                   {shown.map((c) => (
                     <TableCell key={c.key} className={c.className}>{c.cell(r)}</TableCell>
                   ))}
-                  {actions && <TableCell className="text-right">{actions(r)}</TableCell>}
+                  {actions && <TableCell>{actions(r)}</TableCell>}
                 </TableRow>
               ))
             ) : (

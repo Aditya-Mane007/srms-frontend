@@ -1,3 +1,4 @@
+import { SaveIcon } from "lucide-react"
 import { useState, type ReactNode } from "react"
 import { ErrorText, useSubmit } from "@/components/layout"
 import { Button } from "@/components/ui/button"
@@ -9,6 +10,7 @@ export function FormDialog({
   trigger,
   title,
   submitLabel = "Save",
+  submitIcon = <SaveIcon />,
   onSave,
   children,
   open: openProp,
@@ -18,6 +20,7 @@ export function FormDialog({
   trigger?: ReactNode
   title: string
   submitLabel?: string
+  submitIcon?: ReactNode
   onSave: (data: FormData) => Promise<void>
   children: ReactNode
   open?: boolean
@@ -45,7 +48,7 @@ export function FormDialog({
           </FieldGroup>
           <DialogFooter className="h-16 shrink-0 justify-center bg-transparent sm:items-center">
             <Button type="submit" disabled={busy}>
-              {busy ? "Saving…" : submitLabel}
+              {submitIcon} {busy ? "Saving…" : submitLabel}
             </Button>
           </DialogFooter>
         </form>
@@ -62,6 +65,7 @@ export function ConfirmDialog({
   children,
   confirmLabel,
   destructive,
+  icon,
   onConfirm,
 }: {
   open: boolean
@@ -70,6 +74,7 @@ export function ConfirmDialog({
   children: ReactNode
   confirmLabel: string
   destructive?: boolean
+  icon?: ReactNode
   onConfirm: () => Promise<void>
 }) {
   const { busy, error, onSubmit } = useSubmit(async () => {
@@ -88,7 +93,7 @@ export function ConfirmDialog({
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
             <Button type="submit" variant={destructive ? "destructive" : "default"} disabled={busy}>
-              {busy ? "Working…" : confirmLabel}
+              {icon} {busy ? "Working…" : confirmLabel}
             </Button>
           </DialogFooter>
         </form>

@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { UploadIcon } from "lucide-react"
+import { DownloadIcon, SaveIcon, UploadIcon } from "lucide-react"
 import { toast } from "sonner"
 import { api, errorMessage, type Schemas } from "@/api/client"
 import { ErrorText } from "@/components/layout"
@@ -113,7 +113,7 @@ export function EmployeeSeedUpload({ clientId, onSaved }: { clientId: string; on
             </p>
           )}
           <div className="flex gap-2">
-            <Button onClick={() => save(state.file)} disabled={state.result.created === 0}>Confirm and save</Button>
+            <Button onClick={() => save(state.file)} disabled={state.result.created === 0}><SaveIcon aria-hidden /> Confirm and save</Button>
             <Button variant="outline" onClick={() => setState({ step: "pick" })}>Cancel</Button>
           </div>
         </div>
@@ -125,7 +125,7 @@ export function EmployeeSeedUpload({ clientId, onSaved }: { clientId: string; on
             {state.file.name} has {state.errors.length} error{state.errors.length === 1 ? "" : "s"}. Nothing was saved; fix them and upload again.
           </p>
           <Button variant="outline" className="w-fit" onClick={() => downloadCsv(state.file.name, state.errors)}>
-            Download errors (CSV)
+            <DownloadIcon aria-hidden /> Download errors (CSV)
           </Button>
           <Table>
             <TableHeader>

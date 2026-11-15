@@ -1,3 +1,4 @@
+import { CheckIcon, KeyRoundIcon, LogInIcon, SendIcon } from "lucide-react"
 import { useState, type ReactNode } from "react"
 import { ErrorText, str, useSubmit } from "@/components/layout"
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router"
@@ -60,7 +61,7 @@ export function LoginPage() {
         <ErrorText error={error} />
         <Field>
           <Button type="submit" disabled={busy}>
-            {busy ? "Signing in…" : "Sign in"}
+            <LogInIcon aria-hidden /> {busy ? "Signing in…" : "Sign in"}
           </Button>
         </Field>
       </form>
@@ -86,7 +87,7 @@ export function ForgotPasswordPage() {
           </Field>
           <ErrorText error={error} />
           <Button type="submit" disabled={busy}>
-            Send link
+            <SendIcon aria-hidden /> Send link
           </Button>
         </form>
       )}
@@ -120,7 +121,7 @@ export function ResetPasswordPage() {
         <NewPassword />
         <ErrorText error={token ? error : "This link is missing its token. Ask for a new one."} />
         <Button type="submit" disabled={busy || !token}>
-          Save password
+          <KeyRoundIcon aria-hidden /> Save password
         </Button>
       </form>
     </AuthCard>
@@ -146,7 +147,7 @@ export function AcceptInvitePage() {
         <NewPassword />
         <ErrorText error={token ? error : "This link is missing its token. Ask for a new invite."} />
         <Button type="submit" disabled={busy || !token}>
-          Accept invite
+          <CheckIcon aria-hidden /> Accept invite
         </Button>
       </form>
     </AuthCard>

@@ -1,5 +1,5 @@
 import { useQueryClient } from "@tanstack/react-query"
-import { MailPlusIcon } from "lucide-react"
+import { MailPlusIcon, PowerIcon, SendIcon } from "lucide-react"
 import { toast } from "sonner"
 import { api, must } from "@/api/client"
 import { useAuth } from "@/auth"
@@ -31,6 +31,7 @@ export function UsersPage() {
           trigger={<><MailPlusIcon /> Invite user</>}
           title="Invite user"
           submitLabel="Send invite"
+          submitIcon={<SendIcon />}
           onSave={async (d) => {
             await must(api.POST("/invitations", { body: { email: str(d, "email") } }))
             toast.success("Invite sent")
@@ -56,7 +57,7 @@ export function UsersPage() {
         actions={(u) =>
           u.id !== meId && (
             <Button variant="ghost" size="sm" onClick={() => setActive(u.id, !u.active)}>
-              {u.active ? "Disable" : "Enable"}
+              <PowerIcon aria-hidden /> {u.active ? "Disable" : "Enable"}
               <span className="sr-only"> {u.name}</span>
             </Button>
           )

@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { Link, useNavigate, useParams } from "react-router"
 import { useQueryClient } from "@tanstack/react-query"
-import { EyeIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, PowerIcon } from "lucide-react"
+import { EyeIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, PowerIcon, Settings2Icon } from "lucide-react"
 import { toast } from "sonner"
 import { api, must, type Schemas } from "@/api/client"
 import { useClients, useCompanies, useSelection } from "@/data"
@@ -138,6 +138,7 @@ function CompanyActions({ c }: { c: Schemas["Company"] }) {
         title={`${c.active ? "Deactivate" : "Activate"} ${c.name}?`}
         confirmLabel={c.active ? "Deactivate" : "Activate"}
         destructive={c.active}
+        icon={<PowerIcon />}
         onConfirm={async () => {
           await must(api.PATCH("/companies/{id}", { params: { path: { id: c.id } }, body: { active: !c.active } }))
           await qc.invalidateQueries({ queryKey: ["companies"] })
@@ -165,10 +166,10 @@ export function CompanyPage() {
       actions={
         <div className="flex flex-wrap gap-2">
           <Link className="inline-flex h-8 items-center rounded-lg border px-2.5 text-sm" to={`/companies/${company.id}/masters`}>
-            Masters
+            <Settings2Icon aria-hidden className="mr-1 size-4" /> Masters
           </Link>
           <FormDialog
-            trigger="Edit company"
+            trigger={<><PencilIcon /> Edit company</>}
             title="Edit company"
             onSave={async (d) => {
               await must(api.PATCH("/companies/{id}", { params: { path: { id: company.id } }, body: companyBody(d) }))
@@ -289,7 +290,7 @@ export function ClientPage() {
       crumbs={[...base, { label: client.name }]}
       actions={
         <FormDialog
-          trigger="Edit client"
+          trigger={<><PencilIcon /> Edit client</>}
           title="Edit client"
           onSave={async (d) => {
             await must(
@@ -360,7 +361,7 @@ export function ClientPage() {
           ]}
           actions={(s) => (
             <FormDialog
-              trigger="Edit"
+              trigger={<><PencilIcon /> Edit</>}
               title={`Edit site ${s.siteCode}`}
               onSave={async (d) => {
                 await must(
