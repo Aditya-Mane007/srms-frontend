@@ -1,16 +1,18 @@
 import { useState } from "react"
-import { Link, useParams } from "react-router"
+import { Link, useNavigate, useParams } from "react-router"
 import { useQueryClient } from "@tanstack/react-query"
-import { PlusIcon } from "lucide-react"
+import { EyeIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, PowerIcon } from "lucide-react"
 import { toast } from "sonner"
 import { api, must, type Schemas } from "@/api/client"
 import { useClients, useCompanies, useSelection } from "@/data"
 import { EmployeeSeedUpload } from "@/components/employee-seed"
 import { DataTable, StatusBadge } from "@/components/data-table"
-import { FormDialog } from "@/components/form-dialog"
+import { ConfirmDialog, FormDialog } from "@/components/form-dialog"
 import { PlaceFields, SiteDetailFields, TextField } from "@/components/fields"
 import { optStr, Page, str } from "@/components/layout"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 const status = (active: boolean) => <StatusBadge active={active} />
 
@@ -87,8 +89,66 @@ export function CompaniesPage() {
           },
           { key: "status", label: "Status", cell: (c) => status(c.active) },
         ]}
+        actions={(c) => <CompanyActions c={c} />}
       />
     </Page>
+  )
+}
+
+/** Row menu: icon-only trigger (tight column), icon + text items. Deactivate instead of delete: history stays. */
+function CompanyActions({ c }: { c: Schemas["Company"] }) {
+  const qc = useQueryClient()
+  const navigate = useNavigate()
+  const { select } = useSelection()
+  const [dialog, setDialog] = useState<"edit" | "toggle" | null>(null)
+  const close = (o: boolean) => !o && setDialog(null)
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={`Actions for ${c.name}`} />}>
+          <MoreHorizontalIcon />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => (select({ companyId: c.id }), navigate(`/companies/${c.id}`))}>
+            <EyeIcon aria-hidden /> View details
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setDialog("edit")}>
+            <PencilIcon aria-hidden /> Edit details
+          </DropdownMenuItem>
+          <DropdownMenuItem variant={c.active ? "destructive" : "default"} onClick={() => setDialog("toggle")}>
+            <PowerIcon aria-hidden /> {c.active ? "Deactivate" : "Activate"}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <FormDialog
+        open={dialog === "edit"}
+        onOpenChange={close}
+        title="Edit company"
+        onSave={async (d) => {
+          await must(api.PATCH("/companies/{id}", { params: { path: { id: c.id } }, body: companyBody(d) }))
+          await qc.invalidateQueries({ queryKey: ["companies"] })
+          toast.success("Company saved")
+        }}
+      >
+        <CompanyFields c={c} />
+      </FormDialog>
+      <ConfirmDialog
+        open={dialog === "toggle"}
+        onOpenChange={close}
+        title={`${c.active ? "Deactivate" : "Activate"} ${c.name}?`}
+        confirmLabel={c.active ? "Deactivate" : "Activate"}
+        destructive={c.active}
+        onConfirm={async () => {
+          await must(api.PATCH("/companies/{id}", { params: { path: { id: c.id } }, body: { active: !c.active } }))
+          await qc.invalidateQueries({ queryKey: ["companies"] })
+          toast.success(`${c.name} ${c.active ? "deactivated" : "activated"}`)
+        }}
+      >
+        {c.active
+          ? "It moves to the Inactive list. Its clients, sites and history are kept, and you can activate it again."
+          : "It moves back to the Active list."}
+      </ConfirmDialog>
+    </>
   )
 }
 
