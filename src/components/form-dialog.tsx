@@ -26,13 +26,13 @@ export function FormDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button variant="outline" />}>{trigger}</DialogTrigger>
-      <DialogContent className="flex max-h-[90svh] flex-col sm:max-w-lg [&>[data-slot=dialog-close]]:top-[18px] [&>[data-slot=dialog-close]]:right-4">
+      <DialogContent className="flex max-h-[90svh] flex-col gap-0 sm:max-w-lg [&>[data-slot=dialog-close]]:top-[18px] [&>[data-slot=dialog-close]]:right-4">
         <DialogHeader className="-mx-4 -mt-4 h-16 shrink-0 justify-center border-b p-4">
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         {/* header and footer stay put; only the fields scroll */}
-        <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col gap-4">
-          <FieldGroup className="-mx-4 min-h-0 w-auto overflow-y-auto px-4 py-1">
+        <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
+          <FieldGroup className="-mx-4 min-h-0 w-auto overflow-y-auto px-4 py-3">
             {children}
             <ErrorText error={error} />
           </FieldGroup>
