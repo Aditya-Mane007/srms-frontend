@@ -2,8 +2,91 @@ import { useState } from "react"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
-import { NativeSelect } from "@/components/layout"
+import { format, parse } from "date-fns"
+import { CalendarIcon } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Calendar } from "@/components/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { locationCode, useStates } from "@/data"
+
+type Item = { value: string; label: string }
+
+/** shadcn Select that posts with FormData (`name`); `value` + `onValueChange` when controlled. */
+export function SelectField({
+  id,
+  name,
+  label,
+  items,
+  placeholder,
+  value,
+  defaultValue,
+  onValueChange,
+  required,
+  disabled,
+}: {
+  id: string
+  name: string
+  label: string
+  items: Item[]
+  placeholder: string
+  value?: string
+  defaultValue?: string
+  onValueChange?: (v: string) => void
+  required?: boolean
+  disabled?: boolean
+}) {
+  return (
+    <Field>
+      <FieldLabel htmlFor={id}>
+        {label}
+        {required && <span aria-hidden> *</span>}
+      </FieldLabel>
+      <Select
+        name={name}
+        items={items}
+        required={required}
+        disabled={disabled}
+        {...(value !== undefined ? { value: value || null } : { defaultValue: defaultValue || null })}
+        onValueChange={(v) => onValueChange?.((v as string | null) ?? "")}
+      >
+        <SelectTrigger id={id} className="w-full">
+          <SelectValue placeholder={placeholder} />
+        </SelectTrigger>
+        <SelectContent>
+          {items.map((i) => (
+            <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </Field>
+  )
+}
+
+/** shadcn date picker; posts `name` as YYYY-MM-DD, shows DD-MM-YYYY. */
+export function DateField({ name, label, required, defaultValue }: { name: string; label: string; required?: boolean; defaultValue?: string }) {
+  const [date, setDate] = useState(() => (defaultValue ? parse(defaultValue.slice(0, 10), "yyyy-MM-dd", new Date()) : undefined))
+  const [open, setOpen] = useState(false)
+  return (
+    <Field>
+      <FieldLabel htmlFor={name}>
+        {label}
+        {required && <span aria-hidden> *</span>}
+      </FieldLabel>
+      <Popover open={open} onOpenChange={setOpen}>
+        <PopoverTrigger render={<Button id={name} variant="outline" className="w-full justify-between font-normal" />}>
+          {date ? format(date, "dd-MM-yyyy") : <span className="text-muted-foreground">Pick a date</span>}
+          <CalendarIcon aria-hidden />
+        </PopoverTrigger>
+        <PopoverContent className="w-auto p-0" align="start">
+          <Calendar mode="single" selected={date} defaultMonth={date} captionLayout="dropdown" onSelect={(d) => (setDate(d), setOpen(false))} />
+        </PopoverContent>
+      </Popover>
+      {/* carries the value into FormData and blocks submit when required and empty */}
+      <input className="sr-only" tabIndex={-1} aria-hidden name={name} required={required} value={date ? format(date, "yyyy-MM-dd") : ""} onChange={() => {}} />
+    </Field>
+  )
+}
 
 /** Labelled text input; `hint` is tied to the input for screen readers. */
 export function TextField({
@@ -45,24 +128,27 @@ export function PlaceFields({ clientCode }: { clientCode: string }) {
 
   return (
     <>
-      <Field>
-        <FieldLabel htmlFor="stateId">State *</FieldLabel>
-        <NativeSelect id="stateId" name="stateId" required value={stateId} onChange={(e) => (setStateId(e.target.value), setCityId(""))}>
-          <option value="">Choose a state</option>
-          {states.filter((s) => s.active).map((s) => (
-            <option key={s.id} value={s.id}>{s.name}</option>
-          ))}
-        </NativeSelect>
-      </Field>
-      <Field>
-        <FieldLabel htmlFor="cityId">City *</FieldLabel>
-        <NativeSelect id="cityId" name="cityId" required value={cityId} onChange={(e) => setCityId(e.target.value)} disabled={!state}>
-          <option value="">{state ? "Choose a city" : "Choose a state first"}</option>
-          {state?.cities.filter((c) => c.active).map((c) => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-          ))}
-        </NativeSelect>
-      </Field>
+      <SelectField
+        id="stateId"
+        name="stateId"
+        label="State"
+        required
+        placeholder="Choose a state"
+        items={states.filter((s) => s.active).map((s) => ({ value: s.id, label: s.name }))}
+        value={stateId}
+        onValueChange={(v) => (setStateId(v), setCityId(""))}
+      />
+      <SelectField
+        id="cityId"
+        name="cityId"
+        label="City"
+        required
+        disabled={!state}
+        placeholder={state ? "Choose a city" : "Choose a state first"}
+        items={state?.cities.filter((c) => c.active).map((c) => ({ value: c.id, label: c.name })) ?? []}
+        value={cityId}
+        onValueChange={setCityId}
+      />
       <TextField name="location" label="Location" required maxLength={100} value={location} onChange={(e) => setLocation(e.target.value)} hint="The location name, e.g. Platina. A different location is a different site." />
       <p className="rounded-md bg-muted px-3 py-2 font-mono text-sm" aria-live="polite">
         <span className="sr-only">Site code will be </span>

@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 /** Active / inactive pill; the word carries the meaning, not the colour. */
@@ -219,18 +220,17 @@ function Pager({ meta, size, onPage, onSize }: { meta: Meta; size: number; onPag
   return (
     <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
       <div className="flex items-center gap-2 text-muted-foreground">
-        <label className="flex items-center gap-2">
-          Rows per page
-          <select
-            className="h-8 rounded-lg border border-input bg-transparent px-2 text-foreground dark:bg-input/30"
-            value={size}
-            onChange={(e) => onSize(Number(e.target.value))}
-          >
+        <span aria-hidden>Rows per page</span>
+        <Select items={SIZES.map((s) => ({ value: String(s), label: String(s) }))} value={String(size)} onValueChange={(v) => onSize(Number(v))}>
+          <SelectTrigger size="sm" aria-label="Rows per page" className="w-18">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
             {SIZES.map((s) => (
-              <option key={s} value={s}>{s}</option>
+              <SelectItem key={s} value={String(s)}>{s}</SelectItem>
             ))}
-          </select>
-        </label>
+          </SelectContent>
+        </Select>
         <span aria-live="polite">
           {from}–{to} of {meta.total_items}
         </span>

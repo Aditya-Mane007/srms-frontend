@@ -119,12 +119,3 @@ export const ErrorText = ({ error }: { error: string | null | undefined }) =>
 export const str = (d: FormData, k: string) => String(d.get(k) ?? "").trim()
 export const optStr = (d: FormData, k: string) => str(d, k) || null
 
-/** Styled native select: works with FormData and screen readers without extra code. */
-export function NativeSelect(props: React.ComponentProps<"select">) {
-  return (
-    <select
-      {...props}
-      className="h-8 w-full rounded-lg border border-input bg-transparent px-2.5 text-sm outline-none focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
-    />
-  )
-}

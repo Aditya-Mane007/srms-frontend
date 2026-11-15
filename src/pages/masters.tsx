@@ -6,9 +6,8 @@ import { api, must } from "@/api/client"
 import { useCompanies, useDesignations, useMinimumWages, useSkillCategories } from "@/data"
 import { DataTable } from "@/components/data-table"
 import { FormDialog } from "@/components/form-dialog"
-import { TextField } from "@/components/fields"
-import { ErrorText, NativeSelect, Page, str } from "@/components/layout"
-import { Field, FieldLabel } from "@/components/ui/field"
+import { DateField, SelectField, TextField } from "@/components/fields"
+import { ErrorText, Page, str } from "@/components/layout"
 
 /** Backend dates are YYYY-MM-DD (or ISO); registers show DD-MM-YYYY. */
 const ddmmyyyy = (d: string) => d.slice(0, 10).split("-").reverse().join("-")
@@ -16,15 +15,15 @@ const ddmmyyyy = (d: string) => d.slice(0, 10).split("-").reverse().join("-")
 function CategorySelect({ companyId, value }: { companyId: string; value?: string }) {
   const { data: cats = [] } = useSkillCategories(companyId)
   return (
-    <Field>
-      <FieldLabel htmlFor="skillCategoryId">Skill category *</FieldLabel>
-      <NativeSelect id="skillCategoryId" name="skillCategoryId" required defaultValue={value ?? ""}>
-        <option value="">Choose a category</option>
-        {cats.map((c) => (
-          <option key={c.id} value={c.id}>{c.name}</option>
-        ))}
-      </NativeSelect>
-    </Field>
+    <SelectField
+      id="skillCategoryId"
+      name="skillCategoryId"
+      label="Skill category"
+      required
+      placeholder="Choose a category"
+      items={cats.map((c) => ({ value: c.id, label: c.name }))}
+      defaultValue={value}
+    />
   )
 }
 
@@ -115,8 +114,8 @@ export function MastersPage() {
             }}
           >
             <CategorySelect companyId={companyId} />
-            <TextField name="validFrom" label="Valid from" type="date" required />
-            <TextField name="validTo" label="Valid to" type="date" required />
+            <DateField name="validFrom" label="Valid from" required />
+            <DateField name="validTo" label="Valid to" required />
             <TextField name="basic" label="Basic (₹/month)" required inputMode="decimal" pattern="\d+(\.\d+)?" />
             <TextField name="vda" label="VDA (₹/month)" required inputMode="decimal" pattern="\d+(\.\d+)?" hint="Total = Basic + VDA, worked out for you." />
             <TextField name="overtimePerHour" label="Overtime (₹/hour)" required inputMode="decimal" pattern="\d+(\.\d+)?" />
