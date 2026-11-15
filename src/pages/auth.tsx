@@ -13,9 +13,9 @@ function AuthCard({ title, subtitle, children }: { title: string; subtitle: stri
   return (
     <main className="flex min-h-svh items-center justify-center bg-muted p-6 md:p-10">
       <div className="w-full max-w-sm md:max-w-3xl">
-        <Card className="overflow-hidden p-0">
-          <CardContent className="grid p-0 md:grid-cols-2">
-            <div className="p-6 md:p-8">
+        <Card className="overflow-hidden p-0 md:h-[70svh] md:min-h-fit">
+          <CardContent className="grid h-full p-0 md:grid-cols-2">
+            <div className="flex flex-col justify-center p-6 md:p-8">
               <FieldGroup>
                 <div className="flex flex-col items-center gap-2 text-center">
                   <h1 className="text-2xl font-bold">{title}</h1>
