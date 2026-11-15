@@ -4,11 +4,12 @@ import { PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 import { api, must } from "@/api/client"
 import { useCompanies, useDesignations, useMinimumWages, useSkillCategories } from "@/data"
+import { DataTable } from "@/components/data-table"
 import { FormDialog } from "@/components/form-dialog"
 import { TextField } from "@/components/fields"
 import { ErrorText, NativeSelect, Page, str } from "@/components/layout"
 import { Field, FieldLabel } from "@/components/ui/field"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { TableCell, TableHead, TableRow } from "@/components/ui/table"
 
 /** Backend dates are YYYY-MM-DD (or ISO); registers show DD-MM-YYYY. */
 const ddmmyyyy = (d: string) => d.slice(0, 10).split("-").reverse().join("-")
@@ -74,16 +75,15 @@ export function MastersPage() {
         }
       >
         <ErrorText error={cats.error?.message} />
-        <Table>
-          <TableHeader>
-            <TableRow><TableHead>Code</TableHead><TableHead>Name</TableHead></TableRow>
-          </TableHeader>
-          <TableBody>
-            {cats.data?.map((c) => (
+        <DataTable
+          rows={cats.data}
+          searchLabel="Search categories"
+          text={(c) => `${c.code} ${c.name}`}
+          head={<><TableHead>Code</TableHead><TableHead>Name</TableHead></>}
+          row={(c) => (
               <TableRow key={c.id}><TableCell className="font-mono">{c.code}</TableCell><TableCell>{c.name}</TableCell></TableRow>
-            ))}
-          </TableBody>
-        </Table>
+          )}
+        />
       </Section>
 
       <Section
@@ -123,16 +123,12 @@ export function MastersPage() {
         }
       >
         <ErrorText error={wages.error?.message} />
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Category</TableHead><TableHead>Valid</TableHead>
-              <TableHead className="text-right">Basic</TableHead><TableHead className="text-right">VDA</TableHead>
-              <TableHead className="text-right">Total</TableHead><TableHead className="text-right">OT/hour</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {wages.data?.map((w) => (
+        <DataTable
+          rows={wages.data}
+          searchLabel="Search rates"
+          text={(w) => w.category.name}
+          head={<><TableHead>Category</TableHead><TableHead>Valid</TableHead><TableHead className="text-right">Basic</TableHead><TableHead className="text-right">VDA</TableHead><TableHead className="text-right">Total</TableHead><TableHead className="text-right">OT/hour</TableHead></>}
+          row={(w) => (
               <TableRow key={w.id}>
                 <TableCell>{w.category.name}</TableCell>
                 <TableCell>{ddmmyyyy(w.validFrom)} to {ddmmyyyy(w.validTo)}</TableCell>
@@ -141,9 +137,8 @@ export function MastersPage() {
                 <TableCell className="text-right tabular-nums">{w.total}</TableCell>
                 <TableCell className="text-right tabular-nums">{w.overtimePerHour}</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+          )}
+        />
       </Section>
 
       <Section
@@ -165,16 +160,15 @@ export function MastersPage() {
         }
       >
         <ErrorText error={desigs.error?.message} />
-        <Table>
-          <TableHeader>
-            <TableRow><TableHead>Designation</TableHead><TableHead>Skill category</TableHead></TableRow>
-          </TableHeader>
-          <TableBody>
-            {desigs.data?.map((d) => (
+        <DataTable
+          rows={desigs.data}
+          searchLabel="Search designations"
+          text={(d) => `${d.designation} ${catName(d.skillCategoryId)}`}
+          head={<><TableHead>Designation</TableHead><TableHead>Skill category</TableHead></>}
+          row={(d) => (
               <TableRow key={d.designation}><TableCell>{d.designation}</TableCell><TableCell>{catName(d.skillCategoryId)}</TableCell></TableRow>
-            ))}
-          </TableBody>
-        </Table>
+          )}
+        />
       </Section>
     </Page>
   )

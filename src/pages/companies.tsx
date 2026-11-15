@@ -6,13 +6,14 @@ import { toast } from "sonner"
 import { api, must, type Schemas } from "@/api/client"
 import { useClients, useCompanies, useSelection, useSites } from "@/data"
 import { EmployeeSeedUpload } from "@/components/employee-seed"
+import { DataTable, StatusBadge, activeFilter } from "@/components/data-table"
 import { FormDialog } from "@/components/form-dialog"
 import { PlaceFields, SiteDetailFields, TextField } from "@/components/fields"
 import { ErrorText, optStr, Page, str } from "@/components/layout"
 import { Badge } from "@/components/ui/badge"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { TableCell, TableHead, TableRow } from "@/components/ui/table"
 
-const status = (active: boolean) => <Badge variant={active ? "secondary" : "outline"}>{active ? "Active" : "Inactive"}</Badge>
+const status = (active: boolean) => <StatusBadge active={active} />
 
 function CompanyFields({ c }: { c?: Schemas["Company"] }) {
   return (
@@ -67,34 +68,25 @@ export function CompaniesPage() {
       }
     >
       <ErrorText error={error?.message} />
-      {isPending ? (
-        <p role="status">Loading…</p>
-      ) : companies?.length ? (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Code</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {companies.map((c) => (
-              <TableRow key={c.id}>
-                <TableCell className="font-mono">{c.code}</TableCell>
-                <TableCell>
-                  <Link className="underline-offset-2 hover:underline" to={`/companies/${c.id}`} onClick={() => select({ companyId: c.id })}>
-                    {c.name}
-                  </Link>
-                </TableCell>
-                <TableCell>{status(c.active)}</TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      ) : (
-        <p className="text-muted-foreground">No companies yet. Add the first company to start.</p>
-      )}
+      <DataTable
+        rows={isPending ? undefined : (companies ?? [])}
+        searchLabel="Search companies"
+        text={(c) => `${c.code} ${c.name}`}
+        filter={activeFilter}
+        empty="No companies yet. Add the first company to start."
+        head={<><TableHead>Code</TableHead><TableHead>Name</TableHead><TableHead>Status</TableHead></>}
+        row={(c) => (
+          <TableRow key={c.id}>
+            <TableCell className="font-mono">{c.code}</TableCell>
+            <TableCell>
+              <Link className="underline-offset-2 hover:underline" to={`/companies/${c.id}`} onClick={() => select({ companyId: c.id })}>
+                {c.name}
+              </Link>
+            </TableCell>
+            <TableCell>{status(c.active)}</TableCell>
+          </TableRow>
+        )}
+      />
     </Page>
   )
 }
@@ -181,32 +173,25 @@ export function CompanyPage() {
           </FormDialog>
         </div>
         <ErrorText error={error?.message} />
-        {clients.length ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Code</TableHead>
-                <TableHead>Name</TableHead>
-                <TableHead>Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {clients.map((c) => (
-                <TableRow key={c.id}>
-                  <TableCell className="font-mono">{c.code}</TableCell>
-                  <TableCell>
-                    <Link className="underline-offset-2 hover:underline" to={`/companies/${company.id}/clients/${c.id}`}>
-                      {c.name}
-                    </Link>
-                  </TableCell>
-                  <TableCell>{status(c.active)}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        ) : (
-          <p className="text-muted-foreground">No clients yet.</p>
-        )}
+        <DataTable
+          rows={clients}
+          searchLabel="Search clients"
+          text={(c) => `${c.code} ${c.name}`}
+          filter={activeFilter}
+          empty="No clients yet."
+          head={<><TableHead>Code</TableHead><TableHead>Name</TableHead><TableHead>Status</TableHead></>}
+          row={(c) => (
+            <TableRow key={c.id}>
+              <TableCell className="font-mono">{c.code}</TableCell>
+              <TableCell>
+                <Link className="underline-offset-2 hover:underline" to={`/companies/${company.id}/clients/${c.id}`}>
+                  {c.name}
+                </Link>
+              </TableCell>
+              <TableCell>{status(c.active)}</TableCell>
+            </TableRow>
+          )}
+        />
       </section>
     </Page>
   )
@@ -300,17 +285,14 @@ export function ClientPage() {
           </FormDialog>
         </div>
         <ErrorText error={sitesError?.message} />
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Site code</TableHead>
-              <TableHead>Name</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead><span className="sr-only">Actions</span></TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sites.map((s) => (
+        <DataTable
+          rows={sites}
+          searchLabel="Search sites"
+          text={(s) => `${s.siteCode} ${s.name}`}
+          filter={activeFilter}
+          empty="No sites yet."
+          head={<><TableHead>Site code</TableHead><TableHead>Name</TableHead><TableHead>Status</TableHead><TableHead><span className="sr-only">Actions</span></TableHead></>}
+          row={(s) => (
               <TableRow key={s.id}>
                 <TableCell className="font-mono">{s.siteCode}</TableCell>
                 <TableCell>
@@ -345,9 +327,8 @@ export function ClientPage() {
                   </FormDialog>
                 </TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+          )}
+        />
       </section>
     </Page>
   )

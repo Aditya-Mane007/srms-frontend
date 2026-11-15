@@ -6,9 +6,9 @@ import { useAuth } from "@/auth"
 import { FormDialog } from "@/components/form-dialog"
 import { TextField } from "@/components/fields"
 import { ErrorText, Page, str } from "@/components/layout"
-import { Badge } from "@/components/ui/badge"
+import { DataTable, StatusBadge } from "@/components/data-table"
 import { Button } from "@/components/ui/button"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { TableCell, TableHead, TableRow } from "@/components/ui/table"
 
 export function UsersPage() {
   const qc = useQueryClient()
@@ -43,37 +43,29 @@ export function UsersPage() {
       }
     >
       <ErrorText error={error?.message} />
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Name</TableHead>
-            <TableHead>Email</TableHead>
-            <TableHead>Last sign-in</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead><span className="sr-only">Actions</span></TableHead>
+      <DataTable
+        rows={users}
+        searchLabel="Search users"
+        text={(u) => `${u.name} ${u.email}`}
+        filter={{ label: "Status", options: { All: () => true, Active: (u) => u.active, Disabled: (u) => !u.active } }}
+        head={<><TableHead>Name</TableHead><TableHead>Email</TableHead><TableHead>Last sign-in</TableHead><TableHead>Status</TableHead><TableHead><span className="sr-only">Actions</span></TableHead></>}
+        row={(u) => (
+          <TableRow key={u.id}>
+            <TableCell>{u.name}</TableCell>
+            <TableCell>{u.email}</TableCell>
+            <TableCell>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString("en-IN") : "Never"}</TableCell>
+            <TableCell><StatusBadge active={u.active} off="Disabled" /></TableCell>
+            <TableCell className="text-right">
+              {u.id !== meId && (
+                <Button variant="ghost" size="sm" onClick={() => setActive(u.id, !u.active)}>
+                  {u.active ? "Disable" : "Enable"}
+                  <span className="sr-only"> {u.name}</span>
+                </Button>
+              )}
+            </TableCell>
           </TableRow>
-        </TableHeader>
-        <TableBody>
-          {users?.map((u) => (
-            <TableRow key={u.id}>
-              <TableCell>{u.name}</TableCell>
-              <TableCell>{u.email}</TableCell>
-              <TableCell>{u.lastLoginAt ? new Date(u.lastLoginAt).toLocaleString("en-IN") : "Never"}</TableCell>
-              <TableCell>
-                <Badge variant={u.active ? "secondary" : "outline"}>{u.active ? "Active" : "Disabled"}</Badge>
-              </TableCell>
-              <TableCell className="text-right">
-                {u.id !== meId && (
-                  <Button variant="ghost" size="sm" onClick={() => setActive(u.id, !u.active)}>
-                    {u.active ? "Disable" : "Enable"}
-                    <span className="sr-only"> {u.name}</span>
-                  </Button>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+        )}
+      />
     </Page>
   )
 }
