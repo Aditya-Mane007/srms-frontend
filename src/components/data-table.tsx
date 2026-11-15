@@ -172,9 +172,10 @@ export function DataTable<T>({
 
       {error && <p role="alert" className="text-sm text-destructive">{error.message}</p>}
 
-      <div className={`rounded-lg border ${height === "fill" ? "min-h-0 flex-1 overflow-auto" : "overflow-hidden"}`}>
+      <div className={`rounded-lg border ${height === "fill" ? "min-h-0 flex-1 overflow-hidden [&>[data-slot=table-container]]:h-full [&>[data-slot=table-container]]:overflow-auto" : "overflow-hidden"}`}>
         <Table>
-          <TableHeader className="bg-muted/50">
+          {/* sticky inside the scrolling table container; opaque so rows don't show through, inset line because collapsed borders don't stick */}
+          <TableHeader className="sticky top-0 z-10 bg-muted [&_th]:shadow-[inset_0_-1px_0_var(--border)]">
             <TableRow>
               {shown.map((c) => (
                 <TableHead key={c.key} className={c.className}>{c.label}</TableHead>
