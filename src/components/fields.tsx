@@ -79,7 +79,7 @@ export function DateField({ name, label, required, defaultValue }: { name: strin
           <CalendarIcon aria-hidden />
         </PopoverTrigger>
         <PopoverContent className="w-auto p-0" align="start">
-          <Calendar mode="single" selected={date} defaultMonth={date} captionLayout="dropdown" onSelect={(d) => (setDate(d), setOpen(false))} />
+          <Calendar mode="single" selected={date} defaultMonth={date} captionLayout="dropdown" startMonth={new Date(2000, 0)} endMonth={new Date(new Date().getFullYear() + 10, 11)} onSelect={(d) => (setDate(d), setOpen(false))} />
         </PopoverContent>
       </Popover>
       {/* carries the value into FormData and blocks submit when required and empty */}
