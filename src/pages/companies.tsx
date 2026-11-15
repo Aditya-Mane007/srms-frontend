@@ -5,6 +5,7 @@ import { PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 import { api, must, type Schemas } from "@/api/client"
 import { useClients, useCompanies, useSelection, useSites } from "@/data"
+import { EmployeeSeedUpload } from "@/components/employee-seed"
 import { FormDialog } from "@/components/form-dialog"
 import { PlaceFields, SiteDetailFields, TextField } from "@/components/fields"
 import { ErrorText, optStr, Page, str } from "@/components/layout"
@@ -264,6 +265,10 @@ export function ClientPage() {
       <p className="text-sm text-muted-foreground">
         Code <span className="font-mono">{client.code}</span> · {client.address || "No address"}
       </p>
+      <section className="flex flex-col gap-3" aria-labelledby="emp-h">
+        <h2 id="emp-h" className="text-lg font-semibold">Employees</h2>
+        <EmployeeSeedUpload clientId={client.id} onSaved={refresh} />
+      </section>
       <section className="flex flex-col gap-3" aria-labelledby="sites-h">
         <div className="flex items-center justify-between">
           <h2 id="sites-h" className="text-lg font-semibold">Sites</h2>

@@ -1547,6 +1547,77 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/clients/{id}/employees/seed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload a client's employee seed file (.xlsx, create only); dryRun=true previews without saving */
+        post: {
+            parameters: {
+                query?: {
+                    dryRun?: "true" | "false";
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": string;
+                };
+            };
+            responses: {
+                /** @description Checked (dry run) or saved */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["SeedResult"];
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not signed in */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Row errors; nothing saved. details = [{ row, column, message }] */
+                422: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -1724,6 +1795,15 @@ export interface components {
             designation: string;
             /** Format: uuid */
             skillCategoryId: string;
+        };
+        SeedResult: {
+            dryRun: boolean;
+            /** @description employees created (or that would be, on a dry run) */
+            created: number;
+            /** @description EMP_IDs already in the company */
+            skipped: string[];
+            /** @description site codes created for new locations */
+            newSites: string[];
         };
     };
     responses: never;

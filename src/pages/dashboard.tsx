@@ -3,7 +3,7 @@ import { CheckCircle2Icon, CircleDashedIcon, ClockIcon } from "lucide-react"
 import { useClients, useCompanies, useDesignations, useMinimumWages, useSelection, useSkillCategories } from "@/data"
 import { Page } from "@/components/layout"
 
-type Step = { label: string; state: "done" | "todo" | "later"; to?: string; note?: string }
+type Step = { label: string; state: "done" | "todo" | "later" | "open"; to?: string; note?: string }
 
 /** Setup checklist for the selected company (frontend plan §3). */
 export function DashboardPage() {
@@ -29,10 +29,10 @@ export function DashboardPage() {
     { label: "Clients", state: has(clients) ? "done" : "todo", to: `/companies/${id}` },
     { label: "Sites", state: has(clients) ? "done" : "todo", to: `/companies/${id}`, note: "Each client starts with a default site; add more on the client's page." },
     { label: "Masters: skill categories, minimum wages, designations", state: masters.every(has) ? "done" : "todo", to: `/companies/${id}/masters` },
-    { label: "Employees", state: "later", note: "Upload of the seed file comes with the next backend change." },
+    { label: "Employees", state: has(clients) ? "open" : "later", to: `/companies/${id}`, note: "Upload each client's seed file on that client's page." },
   ]
-  const icon = { done: CheckCircle2Icon, todo: CircleDashedIcon, later: ClockIcon }
-  const text = { done: "Done", todo: "To do", later: "Coming soon" }
+  const icon = { done: CheckCircle2Icon, todo: CircleDashedIcon, later: ClockIcon, open: CircleDashedIcon }
+  const text = { done: "Done", todo: "To do", later: "After clients", open: "Per client" }
 
   return (
     <Page crumbs={[{ label: "Dashboard" }]}>
