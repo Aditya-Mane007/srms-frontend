@@ -53,6 +53,7 @@ export function DataTable<T>({
   searchLabel = "Search",
   status,
   empty = "Nothing here yet.",
+  height = "auto",
 }: {
   /** short and unique per page; prefixes the URL keys */
   id: string
@@ -67,6 +68,8 @@ export function DataTable<T>({
   /** labels for the status filter; omit for lists without a status */
   status?: { active: string; inactive: string }
   empty?: string
+  /** "auto" grows with its rows; "fill" takes the parent's free height (flex-1) and scrolls the rows inside */
+  height?: "auto" | "fill"
 }) {
   const [sp, setSp] = useSearchParams()
   const k = (n: string) => `${id}_${n}`
@@ -114,7 +117,7 @@ export function DataTable<T>({
   const statusText = st ? status?.[st] : "All"
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className={`flex flex-col gap-3 ${height === "fill" ? "min-h-0 flex-1" : ""}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="relative w-full max-w-xs">
           <SearchIcon aria-hidden className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
@@ -168,7 +171,7 @@ export function DataTable<T>({
 
       {error && <p role="alert" className="text-sm text-destructive">{error.message}</p>}
 
-      <div className="overflow-hidden rounded-lg border">
+      <div className={`rounded-lg border ${height === "fill" ? "min-h-0 flex-1 overflow-auto" : "overflow-hidden"}`}>
         <Table>
           <TableHeader className="bg-muted/50">
             <TableRow>
