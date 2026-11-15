@@ -67,6 +67,7 @@ export function CompaniesPage() {
     >
       <DataTable
         id="companies"
+        height="fill"
         queryKey={["companies"]}
         fetch={(query) => api.GET("/companies", { params: { query } })}
         rowKey={(c) => c.id}
