@@ -146,6 +146,10 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* native <select> options otherwise keep a light list behind themed (white) text */
+  option {
+    @apply bg-popover text-popover-foreground;
+  }
   body {
     @apply bg-background text-foreground;
   }
