@@ -36,9 +36,13 @@ const Toaster = ({ ...props }: ToasterProps) => {
           "--border-radius": "var(--radius)",
         } as React.CSSProperties
       }
+      closeButton
       toastOptions={{
         classNames: {
-          toast: "cn-toast",
+          toast: "cn-toast pr-10",
+          // sonner puts the X on the top-left corner; move it to the end of the message
+          closeButton:
+            "!left-auto !right-2 !top-1/2 !-translate-y-1/2 !transform !border-0 !bg-transparent text-muted-foreground hover:!text-foreground",
         },
       }}
       {...props}
