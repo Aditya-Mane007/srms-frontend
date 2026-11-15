@@ -181,7 +181,7 @@ export function DataTable<T>({
               {actions && <TableHead><span className="sr-only">Actions</span></TableHead>}
             </TableRow>
           </TableHeader>
-          <TableBody aria-busy={isFetching}>
+          <TableBody aria-busy={isFetching} className={height === "fill" ? "[&_tr:last-child]:border-b" : undefined}>
             {!rows ? (
               <TableRow>
                 <TableCell colSpan={span} className="h-16 text-center text-muted-foreground" role="status">Loading…</TableCell>
