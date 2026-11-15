@@ -27,7 +27,7 @@ export function FormDialog({
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button variant="outline" />}>{trigger}</DialogTrigger>
       <DialogContent className="flex max-h-[90svh] flex-col sm:max-w-lg">
-        <DialogHeader className="-mx-4 -mt-4 border-b p-4">
+        <DialogHeader className="-mx-4 -mt-4 h-16 shrink-0 justify-center border-b p-4">
           <DialogTitle>{title}</DialogTitle>
         </DialogHeader>
         {/* header and footer stay put; only the fields scroll */}
@@ -36,7 +36,7 @@ export function FormDialog({
             {children}
             <ErrorText error={error} />
           </FieldGroup>
-          <DialogFooter className="bg-transparent">
+          <DialogFooter className="h-16 shrink-0 justify-center bg-transparent sm:items-center">
             <Button type="submit" disabled={busy}>
               {busy ? "Saving…" : submitLabel}
             </Button>
