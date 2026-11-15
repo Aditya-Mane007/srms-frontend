@@ -32,7 +32,7 @@ export function FormDialog({
         </DialogHeader>
         {/* header and footer stay put; only the fields scroll */}
         <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
-          <FieldGroup className="-mx-4 min-h-0 w-auto overflow-y-auto px-4 py-3">
+          <FieldGroup className="-mx-4 min-h-0 w-auto my-2 overflow-y-auto px-4 py-1">
             {children}
             <ErrorText error={error} />
           </FieldGroup>
