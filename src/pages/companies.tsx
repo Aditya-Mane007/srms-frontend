@@ -179,133 +179,129 @@ export function CompanyPage() {
 
   return (
     <Page bare crumbs={[{ label: "Companies", to: "/companies" }, { label: company.name }]}>
-      <header className="shrink-0 overflow-hidden rounded-xl border">
-        <div aria-hidden className="h-28 bg-linear-to-r from-primary via-primary/60 to-secondary" />
-        <div className="flex flex-wrap items-end justify-between gap-4 px-4 pb-4 md:px-6">
-          <div className="flex items-end gap-4">
-            <div className="-mt-12 grid size-24 shrink-0 place-items-center rounded-2xl border-4 border-background bg-linear-to-br from-primary to-primary/70 text-primary-foreground shadow-md">
-              <Building2Icon aria-hidden className="size-10" />
-            </div>
-            <div className="pb-1">
-              <h1 className="text-2xl font-semibold">{company.name}</h1>
-              <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span className="font-mono">{company.code}</span> {status(company.active)}
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button variant="outline" onClick={() => setDialog("edit")}>
-              <PencilIcon /> Edit
-            </Button>
-            <Button variant={company.active ? "destructive" : "outline"} onClick={() => setDialog("toggle")}>
-              <PowerIcon /> {company.active ? "Deactivate" : "Activate"}
-            </Button>
-          </div>
-        </div>
-      </header>
-      <CompanyDialogs c={company} dialog={dialog} setDialog={setDialog} />
-
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(260px,320px)_1fr]">
-        <section aria-labelledby="info-h" className="rounded-xl border bg-muted/30 p-4">
-          <h2 id="info-h" className="mb-3 font-semibold">Information</h2>
-          <dl className="flex flex-col gap-3 text-sm">
-            {(
-              [
-                ["Code", company.code],
-                ["Name", company.name],
-                ["Address", company.address],
-                ["Owner", company.ownerName],
-                ["Labour ID (LIN)", company.lin],
-                ["PF code", company.pfCode],
-                ["ESIC code", company.esicCode],
-                ["PT registration no.", company.ptRegNo],
-                ["Sub-contractor", company.subContractorName],
-                ["Sub-contractor address", company.subContractorAddress],
-              ] as const
-            ).map(([k, v]) => (
-              <div key={k} className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">{k}</dt>
-                <dd className="text-right break-words">{v || "—"}</dd>
+      {/* on large screens the panels stay put and only their insides scroll */}
+      <div className="grid gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(260px,340px)_minmax(0,1fr)]">
+        <aside className="flex flex-col rounded-xl border bg-card lg:min-h-0">
+          <div className="flex flex-col gap-3 border-b p-4">
+            <div className="flex items-center gap-3">
+              <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                <Building2Icon aria-hidden className="size-6" />
               </div>
-            ))}
-          </dl>
-        </section>
+              <div className="min-w-0">
+                <h1 className="truncate text-lg font-semibold">{company.name}</h1>
+                <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <span className="font-mono">{company.code}</span> {status(company.active)}
+                </p>
+              </div>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <Button variant="outline" size="sm" onClick={() => setDialog("edit")}>
+                <PencilIcon /> Edit
+              </Button>
+              <Button variant={company.active ? "destructive" : "outline"} size="sm" onClick={() => setDialog("toggle")}>
+                <PowerIcon /> {company.active ? "Deactivate" : "Activate"}
+              </Button>
+            </div>
+          </div>
+          <section aria-labelledby="info-h" className="overflow-auto p-4 lg:min-h-0">
+            <h2 id="info-h" className="mb-3 text-sm font-semibold">Information</h2>
+            <dl className="flex flex-col gap-3 text-sm">
+              {(
+                [
+                  ["Code", company.code],
+                  ["Name", company.name],
+                  ["Address", company.address],
+                  ["Owner", company.ownerName],
+                  ["Labour ID (LIN)", company.lin],
+                  ["PF code", company.pfCode],
+                  ["ESIC code", company.esicCode],
+                  ["PT registration no.", company.ptRegNo],
+                  ["Sub-contractor", company.subContractorName],
+                  ["Sub-contractor address", company.subContractorAddress],
+                ] as const
+              ).map(([k, v]) => (
+                <div key={k} className="flex justify-between gap-4">
+                  <dt className="shrink-0 text-muted-foreground">{k}</dt>
+                  <dd className="text-right break-words">{v || "—"}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        </aside>
+        <CompanyDialogs c={company} dialog={dialog} setDialog={setDialog} />
 
         <Tabs
           value={tab}
           onValueChange={(v) => setSp((p) => (v === "clients" ? p.delete("tab") : p.set("tab", String(v)), p), { replace: true })}
-          className="min-w-0"
+          className="flex min-w-0 flex-col gap-3 lg:min-h-0"
         >
-          <TabsList variant="line">
-            <TabsTrigger value="clients">
+          <TabsList variant="line" className="h-11 w-full justify-start rounded-xl border bg-card px-2">
+            <TabsTrigger value="clients" className="flex-none">
               <UsersIcon aria-hidden /> Clients
             </TabsTrigger>
-            <TabsTrigger value="masters">
+            <TabsTrigger value="masters" className="flex-none">
               <Settings2Icon aria-hidden /> Masters
             </TabsTrigger>
           </TabsList>
-          <TabsContent value="clients" className="pt-3">
-          <section className="flex flex-col gap-3" aria-labelledby="clients-h">
-            <div className="flex items-center justify-end">
-              <h2 id="clients-h" className="sr-only">Clients</h2>
-            </div>
-              <DataTable
-                toolbar={
-                  <FormDialog
-                    trigger={<><PlusIcon /> Add client</>}
-                    title="Add client"
-                    onSave={async (d) => {
-                      await must(
-                        api.POST("/companies/{id}/clients", {
-                          params: { path: { id: company.id } },
-                          body: {
-                            code: str(d, "code"),
-                            name: str(d, "clientName"),
-                            address: optStr(d, "clientAddress"),
-                            site: {
-                              stateId: str(d, "stateId"),
-                              cityId: str(d, "cityId"),
-                              location: str(d, "location"),
-                              ...(str(d, "name") && { name: str(d, "name") }),
-                              address: optStr(d, "address"),
-                              natureOfWork: optStr(d, "natureOfWork"),
-                              workingHours: optStr(d, "workingHours"),
-                              restInterval: optStr(d, "restInterval"),
-                            },
+          {/* fixed box; the table fills it and scrolls its rows */}
+          <TabsContent value="clients" className="flex min-h-[60svh] flex-col rounded-xl border bg-card p-4 lg:min-h-0 lg:flex-1">
+            <DataTable
+              toolbar={
+                <FormDialog
+                  trigger={<><PlusIcon /> Add client</>}
+                  title="Add client"
+                  onSave={async (d) => {
+                    await must(
+                      api.POST("/companies/{id}/clients", {
+                        params: { path: { id: company.id } },
+                        body: {
+                          code: str(d, "code"),
+                          name: str(d, "clientName"),
+                          address: optStr(d, "clientAddress"),
+                          site: {
+                            stateId: str(d, "stateId"),
+                            cityId: str(d, "cityId"),
+                            location: str(d, "location"),
+                            ...(str(d, "name") && { name: str(d, "name") }),
+                            address: optStr(d, "address"),
+                            natureOfWork: optStr(d, "natureOfWork"),
+                            workingHours: optStr(d, "workingHours"),
+                            restInterval: optStr(d, "restInterval"),
                           },
-                        }),
-                      )
-                      await qc.invalidateQueries({ queryKey: ["clients", company.id] })
-                      toast.success("Client and its default site added")
-                    }}
-                  >
-                    <ClientCreateFields />
-                  </FormDialog>
-                }
-              id="clients"
-              queryKey={["clients", company.id]}
-              fetch={(query) => api.GET("/companies/{id}/clients", { params: { path: { id: company.id }, query } })}
-              rowKey={(c) => c.id}
-              searchLabel="Search clients"
-              status={{ active: "Active", inactive: "Inactive" }}
-              empty="No clients yet."
-              columns={[
-                { key: "code", label: "Code", className: "font-mono", cell: (c) => c.code },
-                {
-                  key: "name",
-                  label: "Name",
-                  cell: (c) => (
-                    <Link className="underline-offset-2 hover:underline" to={`/companies/${company.id}/clients/${c.id}`}>
-                      {c.name}
-                    </Link>
-                  ),
-                },
-                { key: "status", label: "Status", cell: (c) => status(c.active) },
-              ]}
-            />
-          </section>
+                        },
+                      }),
+                    )
+                    await qc.invalidateQueries({ queryKey: ["clients", company.id] })
+                    toast.success("Client and its default site added")
+                  }}
+                >
+                  <ClientCreateFields />
+                </FormDialog>
+              }
+            id="clients"
+              height="fill"
+            queryKey={["clients", company.id]}
+            fetch={(query) => api.GET("/companies/{id}/clients", { params: { path: { id: company.id }, query } })}
+            rowKey={(c) => c.id}
+            searchLabel="Search clients"
+            status={{ active: "Active", inactive: "Inactive" }}
+            empty="No clients yet."
+            columns={[
+              { key: "code", label: "Code", className: "font-mono", cell: (c) => c.code },
+              {
+                key: "name",
+                label: "Name",
+                cell: (c) => (
+                  <Link className="underline-offset-2 hover:underline" to={`/companies/${company.id}/clients/${c.id}`}>
+                    {c.name}
+                  </Link>
+                ),
+              },
+              { key: "status", label: "Status", cell: (c) => status(c.active) },
+            ]}
+          />
           </TabsContent>
-          <TabsContent value="masters" className="pt-3">
+          <TabsContent value="masters" className="overflow-auto rounded-xl border bg-card p-4 lg:min-h-0 lg:flex-1">
             <Masters companyId={company.id} />
           </TabsContent>
         </Tabs>
