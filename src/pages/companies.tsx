@@ -179,72 +179,62 @@ export function CompanyPage() {
 
   return (
     <Page bare crumbs={[{ label: "Companies", to: "/companies" }, { label: company.name }]}>
-      {/* on large screens the panels stay put and only their insides scroll */}
-      <div className="grid gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(260px,340px)_minmax(0,1fr)]">
-        <aside className="flex flex-col rounded-xl border bg-card lg:min-h-0">
-          {/* theme blues deep → bright with a soft corner glow; stays dark enough for white text end to end */}
-          <div className="flex items-center justify-between gap-3 rounded-t-xl border-b bg-primary p-4 text-primary-foreground">
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-background/20">
-                <Building2Icon aria-hidden className="size-6" />
-              </div>
-              <div className="min-w-0">
-                <h1 className="truncate text-lg font-semibold">{company.name}</h1>
-                <p className="flex items-center gap-2 text-sm text-primary-foreground/80">
-                  <span className="font-mono">{company.code}</span> <Badge className={company.active ? "bg-green-600 text-white" : "bg-white text-neutral-700"}>{company.active ? "Active" : "Inactive"}</Badge>
-                </p>
-              </div>
+      <header className="shrink-0 overflow-hidden rounded-xl border">
+        <div aria-hidden className="h-28 bg-linear-to-r from-primary via-primary/60 to-secondary" />
+        <div className="flex flex-wrap items-end justify-between gap-4 px-4 pb-4 md:px-6">
+          <div className="flex items-end gap-4">
+            <div className="-mt-12 grid size-24 shrink-0 place-items-center rounded-2xl border-4 border-background bg-linear-to-br from-primary to-primary/70 text-primary-foreground shadow-md">
+              <Building2Icon aria-hidden className="size-10" />
             </div>
-            {/* icon only: tight space; names live in aria-label and the tooltip */}
-            <div className="flex shrink-0 gap-1.5">
-              <Button variant="outline" size="icon-sm" className="border-0 bg-white text-neutral-900 shadow-sm hover:bg-white/90" aria-label="Edit company" title="Edit" onClick={() => setDialog("edit")}>
-                <PencilIcon />
-              </Button>
-              <Button
-                variant="outline"
-                size="icon-sm"
-                // solid white face on the coloured header
-                className={`border-0 bg-white shadow-sm hover:bg-white/90 ${company.active ? "text-destructive" : "text-neutral-900"}`}
-                aria-label={company.active ? "Deactivate company" : "Activate company"}
-                title={company.active ? "Deactivate" : "Activate"}
-                onClick={() => setDialog("toggle")}
-              >
-                <PowerIcon />
-              </Button>
+            <div className="pb-1">
+              <h1 className="text-2xl font-semibold">{company.name}</h1>
+              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="font-mono">{company.code}</span> {status(company.active)}
+              </p>
             </div>
           </div>
-          <section aria-labelledby="info-h" className="flex flex-col p-4 lg:min-h-0">
-            <h2 id="info-h" className="mb-3 text-sm font-semibold">Information</h2>
-            {/* heading stays; only the list scrolls */}
-            <dl className="flex min-h-0 flex-col gap-3 overflow-auto text-sm">
-              {(
-                [
-                  ["Code", company.code],
-                  ["Name", company.name],
-                  ["Address", company.address],
-                  ["Owner", company.ownerName],
-                  ["Labour ID (LIN)", company.lin],
-                  ["PF code", company.pfCode],
-                  ["ESIC code", company.esicCode],
-                  ["PT registration no.", company.ptRegNo],
-                  ["Sub-contractor", company.subContractorName],
-                  ["Sub-contractor address", company.subContractorAddress],
-                ] as const
-              ).map(([k, v]) => (
-                <div key={k} className="flex flex-col gap-0.5">
-                  <dt className="text-xs text-muted-foreground">{k}</dt>
-                  <dd className="break-words">{v || "—"}</dd>
-                </div>
-              ))}
-            </dl>
-          </section>
-        </aside>
-        <CompanyDialogs c={company} dialog={dialog} setDialog={setDialog} />
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => setDialog("edit")}>
+              <PencilIcon /> Edit
+            </Button>
+            <Button variant={company.active ? "destructive" : "outline"} onClick={() => setDialog("toggle")}>
+              <PowerIcon /> {company.active ? "Deactivate" : "Activate"}
+            </Button>
+          </div>
+        </div>
+      </header>
+      <CompanyDialogs c={company} dialog={dialog} setDialog={setDialog} />
+
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(260px,320px)_1fr]">
+        <section aria-labelledby="info-h" className="rounded-xl border bg-muted/30 p-4">
+          <h2 id="info-h" className="mb-3 font-semibold">Information</h2>
+          <dl className="flex flex-col gap-3 text-sm">
+            {(
+              [
+                ["Code", company.code],
+                ["Name", company.name],
+                ["Address", company.address],
+                ["Owner", company.ownerName],
+                ["Labour ID (LIN)", company.lin],
+                ["PF code", company.pfCode],
+                ["ESIC code", company.esicCode],
+                ["PT registration no.", company.ptRegNo],
+                ["Sub-contractor", company.subContractorName],
+                ["Sub-contractor address", company.subContractorAddress],
+              ] as const
+            ).map(([k, v]) => (
+              <div key={k} className="flex justify-between gap-4">
+                <dt className="text-muted-foreground">{k}</dt>
+                <dd className="text-right break-words">{v || "—"}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
 
         <Tabs
           value={tab}
           onValueChange={(v) => setSp((p) => (v === "clients" ? p.delete("tab") : p.set("tab", String(v)), p), { replace: true })}
-          className="flex min-w-0 flex-col gap-3 lg:min-h-0"
+          className="flex min-w-0 flex-col gap-3"
         >
           <TabsList variant="line">
             <TabsTrigger value="clients" className="flex-none">
@@ -254,8 +244,8 @@ export function CompanyPage() {
               <Settings2Icon aria-hidden /> Masters
             </TabsTrigger>
           </TabsList>
-          {/* fixed box; the table fills it and scrolls its rows */}
-          <TabsContent value="clients" className="flex min-h-[60svh] flex-col rounded-xl border bg-card p-4 lg:min-h-0 lg:flex-1">
+          {/* fixed-height box; the table fills it and scrolls its rows */}
+          <TabsContent value="clients" className="flex h-[70svh] flex-col rounded-xl border bg-card p-4">
             <DataTable
               toolbar={
                 <FormDialog
@@ -312,7 +302,7 @@ export function CompanyPage() {
             ]}
           />
           </TabsContent>
-          <TabsContent value="masters" className="overflow-auto lg:min-h-0 lg:flex-1">
+          <TabsContent value="masters">
             <Masters companyId={company.id} />
           </TabsContent>
         </Tabs>
