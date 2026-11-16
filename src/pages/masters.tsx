@@ -27,13 +27,10 @@ function CategorySelect({ companyId, value }: { companyId: string; value?: strin
   )
 }
 
-function Section({ id, title, action, children }: { id: string; title: string; action: React.ReactNode; children: React.ReactNode }) {
+function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-3" aria-labelledby={id}>
-      <div className="flex items-center justify-between">
-        <h2 id={id} className="text-lg font-semibold">{title}</h2>
-        {action}
-      </div>
+      <h2 id={id} className="text-lg font-semibold">{title}</h2>
       {children}
     </section>
   )
@@ -64,25 +61,25 @@ export function Masters({ companyId }: { companyId: string }) {
       <Section
         id="cats-h"
         title="Skill categories"
-        action={
-          <FormDialog
-            trigger={<><PlusIcon /> Add category</>}
-            title="Add skill category"
-            onSave={async (d) => {
-              const sort = str(d, "sortOrder")
-              await must(api.POST("/companies/{id}/skill-categories", { ...path, body: { code: str(d, "code"), name: str(d, "name"), ...(sort && { sortOrder: Number(sort) }) } }))
-              await qc.invalidateQueries({ queryKey: ["skill-categories", companyId] })
-              toast.success("Category added")
-            }}
-          >
-            <TextField name="code" label="Code" required pattern="[A-Z0-9_]{2,30}" hint="Capitals, digits or _, e.g. SEMI_SKILLED." />
-            <TextField name="name" label="Name" required maxLength={500} />
-            <TextField name="sortOrder" label="Sort order" type="number" step={1} />
-          </FormDialog>
-        }
       >
         <ErrorText error={cats.error?.message} />
         <DataTable
+          toolbar={
+            <FormDialog
+              trigger={<><PlusIcon /> Add category</>}
+              title="Add skill category"
+              onSave={async (d) => {
+                const sort = str(d, "sortOrder")
+                await must(api.POST("/companies/{id}/skill-categories", { ...path, body: { code: str(d, "code"), name: str(d, "name"), ...(sort && { sortOrder: Number(sort) }) } }))
+                await qc.invalidateQueries({ queryKey: ["skill-categories", companyId] })
+                toast.success("Category added")
+              }}
+            >
+              <TextField name="code" label="Code" required pattern="[A-Z0-9_]{2,30}" hint="Capitals, digits or _, e.g. SEMI_SKILLED." />
+              <TextField name="name" label="Name" required maxLength={500} />
+              <TextField name="sortOrder" label="Sort order" type="number" step={1} />
+            </FormDialog>
+          }
           id="cats"
           queryKey={["skill-categories", companyId]}
           fetch={(query) => api.GET("/companies/{id}/skill-categories", { params: { path: { id: companyId }, query } })}
@@ -98,41 +95,41 @@ export function Masters({ companyId }: { companyId: string }) {
       <Section
         id="wages-h"
         title="Minimum wages"
-        action={
-          <FormDialog
-            trigger={<><PlusIcon /> Add rate</>}
-            title="Add minimum wage"
-            onSave={async (d) => {
-              await must(
-                api.POST("/companies/{id}/minimum-wages", {
-                  ...path,
-                  body: {
-                    skillCategoryId: str(d, "skillCategoryId"),
-                    validFrom: str(d, "validFrom"),
-                    validTo: str(d, "validTo"),
-                    basic: str(d, "basic"),
-                    vda: str(d, "vda"),
-                    // total is basic + VDA; the backend checks it
-                    total: (Number(str(d, "basic")) + Number(str(d, "vda"))).toFixed(2),
-                    overtimePerHour: str(d, "overtimePerHour"),
-                  },
-                }),
-              )
-              await qc.invalidateQueries({ queryKey: ["minimum-wages", companyId] })
-              toast.success("Rate added")
-            }}
-          >
-            <CategorySelect companyId={companyId} />
-            <DateField name="validFrom" label="Valid from" required />
-            <DateField name="validTo" label="Valid to" required />
-            <TextField name="basic" label="Basic (₹/month)" required inputMode="decimal" pattern="\d+(\.\d+)?" />
-            <TextField name="vda" label="VDA (₹/month)" required inputMode="decimal" pattern="\d+(\.\d+)?" hint="Total = Basic + VDA, worked out for you." />
-            <TextField name="overtimePerHour" label="Overtime (₹/hour)" required inputMode="decimal" pattern="\d+(\.\d+)?" />
-          </FormDialog>
-        }
       >
         <ErrorText error={wages.error?.message} />
         <DataTable
+          toolbar={
+            <FormDialog
+              trigger={<><PlusIcon /> Add rate</>}
+              title="Add minimum wage"
+              onSave={async (d) => {
+                await must(
+                  api.POST("/companies/{id}/minimum-wages", {
+                    ...path,
+                    body: {
+                      skillCategoryId: str(d, "skillCategoryId"),
+                      validFrom: str(d, "validFrom"),
+                      validTo: str(d, "validTo"),
+                      basic: str(d, "basic"),
+                      vda: str(d, "vda"),
+                      // total is basic + VDA; the backend checks it
+                      total: (Number(str(d, "basic")) + Number(str(d, "vda"))).toFixed(2),
+                      overtimePerHour: str(d, "overtimePerHour"),
+                    },
+                  }),
+                )
+                await qc.invalidateQueries({ queryKey: ["minimum-wages", companyId] })
+                toast.success("Rate added")
+              }}
+            >
+              <CategorySelect companyId={companyId} />
+              <DateField name="validFrom" label="Valid from" required />
+              <DateField name="validTo" label="Valid to" required />
+              <TextField name="basic" label="Basic (₹/month)" required inputMode="decimal" pattern="\d+(\.\d+)?" />
+              <TextField name="vda" label="VDA (₹/month)" required inputMode="decimal" pattern="\d+(\.\d+)?" hint="Total = Basic + VDA, worked out for you." />
+              <TextField name="overtimePerHour" label="Overtime (₹/hour)" required inputMode="decimal" pattern="\d+(\.\d+)?" />
+            </FormDialog>
+          }
           id="wages"
           queryKey={["minimum-wages", companyId]}
           fetch={(query) => api.GET("/companies/{id}/minimum-wages", { params: { path: { id: companyId }, query } })}
@@ -152,23 +149,23 @@ export function Masters({ companyId }: { companyId: string }) {
       <Section
         id="desig-h"
         title="Designations"
-        action={
-          <FormDialog
-            trigger={<><PlusIcon /> Set designation</>}
-            title="Set designation's skill category"
-            onSave={async (d) => {
-              await must(api.PUT("/companies/{id}/designations", { ...path, body: { designation: str(d, "designation"), skillCategoryId: str(d, "skillCategoryId") } }))
-              await qc.invalidateQueries({ queryKey: ["designations", companyId] })
-              toast.success("Designation saved")
-            }}
-          >
-            <TextField name="designation" label="Designation" required maxLength={500} hint="As written in the paysheet. An existing designation is updated." />
-            <CategorySelect companyId={companyId} />
-          </FormDialog>
-        }
       >
         <ErrorText error={desigs.error?.message} />
         <DataTable
+          toolbar={
+            <FormDialog
+              trigger={<><PlusIcon /> Set designation</>}
+              title="Set designation's skill category"
+              onSave={async (d) => {
+                await must(api.PUT("/companies/{id}/designations", { ...path, body: { designation: str(d, "designation"), skillCategoryId: str(d, "skillCategoryId") } }))
+                await qc.invalidateQueries({ queryKey: ["designations", companyId] })
+                toast.success("Designation saved")
+              }}
+            >
+              <TextField name="designation" label="Designation" required maxLength={500} hint="As written in the paysheet. An existing designation is updated." />
+              <CategorySelect companyId={companyId} />
+            </FormDialog>
+          }
           id="desig"
           queryKey={["designations", companyId]}
           fetch={(query) => api.GET("/companies/{id}/designations", { params: { path: { id: companyId }, query } })}

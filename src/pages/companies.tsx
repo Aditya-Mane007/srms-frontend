@@ -54,22 +54,22 @@ export function CompaniesPage() {
   return (
     <Page
       crumbs={[{ label: "Companies" }]}
-      actions={
-        <FormDialog
-          trigger={<><PlusIcon /> Add company</>}
-          title="Add company"
-          onSave={async (d) => {
-            const c = await must(api.POST("/companies", { body: companyBody(d) }))
-            await qc.invalidateQueries({ queryKey: ["companies"] })
-            select({ companyId: c.id })
-            toast.success(`Company ${c.name} added`)
-          }}
-        >
-          <CompanyFields />
-        </FormDialog>
-      }
     >
       <DataTable
+        toolbar={
+          <FormDialog
+            trigger={<><PlusIcon /> Add company</>}
+            title="Add company"
+            onSave={async (d) => {
+              const c = await must(api.POST("/companies", { body: companyBody(d) }))
+              await qc.invalidateQueries({ queryKey: ["companies"] })
+              select({ companyId: c.id })
+              toast.success(`Company ${c.name} added`)
+            }}
+          >
+            <CompanyFields />
+          </FormDialog>
+        }
         id="companies"
         height="fill"
         queryKey={["companies"]}
@@ -248,38 +248,40 @@ export function CompanyPage() {
           <section className="flex flex-col gap-3" aria-labelledby="clients-h">
             <div className="flex items-center justify-end">
               <h2 id="clients-h" className="sr-only">Clients</h2>
-              <FormDialog
-                trigger={<><PlusIcon /> Add client</>}
-                title="Add client"
-                onSave={async (d) => {
-                  await must(
-                    api.POST("/companies/{id}/clients", {
-                      params: { path: { id: company.id } },
-                      body: {
-                        code: str(d, "code"),
-                        name: str(d, "clientName"),
-                        address: optStr(d, "clientAddress"),
-                        site: {
-                          stateId: str(d, "stateId"),
-                          cityId: str(d, "cityId"),
-                          location: str(d, "location"),
-                          ...(str(d, "name") && { name: str(d, "name") }),
-                          address: optStr(d, "address"),
-                          natureOfWork: optStr(d, "natureOfWork"),
-                          workingHours: optStr(d, "workingHours"),
-                          restInterval: optStr(d, "restInterval"),
-                        },
-                      },
-                    }),
-                  )
-                  await qc.invalidateQueries({ queryKey: ["clients", company.id] })
-                  toast.success("Client and its default site added")
-                }}
-              >
-                <ClientCreateFields />
-              </FormDialog>
             </div>
               <DataTable
+                toolbar={
+                  <FormDialog
+                    trigger={<><PlusIcon /> Add client</>}
+                    title="Add client"
+                    onSave={async (d) => {
+                      await must(
+                        api.POST("/companies/{id}/clients", {
+                          params: { path: { id: company.id } },
+                          body: {
+                            code: str(d, "code"),
+                            name: str(d, "clientName"),
+                            address: optStr(d, "clientAddress"),
+                            site: {
+                              stateId: str(d, "stateId"),
+                              cityId: str(d, "cityId"),
+                              location: str(d, "location"),
+                              ...(str(d, "name") && { name: str(d, "name") }),
+                              address: optStr(d, "address"),
+                              natureOfWork: optStr(d, "natureOfWork"),
+                              workingHours: optStr(d, "workingHours"),
+                              restInterval: optStr(d, "restInterval"),
+                            },
+                          },
+                        }),
+                      )
+                      await qc.invalidateQueries({ queryKey: ["clients", company.id] })
+                      toast.success("Client and its default site added")
+                    }}
+                  >
+                    <ClientCreateFields />
+                  </FormDialog>
+                }
               id="clients"
               queryKey={["clients", company.id]}
               fetch={(query) => api.GET("/companies/{id}/clients", { params: { path: { id: company.id }, query } })}
@@ -371,34 +373,36 @@ export function ClientPage() {
       <section className="flex flex-col gap-3" aria-labelledby="sites-h">
         <div className="flex items-center justify-between">
           <h2 id="sites-h" className="text-lg font-semibold">Sites</h2>
-          <FormDialog
-            trigger={<><PlusIcon /> Add site</>}
-            title="Add site"
-            onSave={async (d) => {
-              await must(
-                api.POST("/clients/{id}/sites", {
-                  params: { path: { id: client.id } },
-                  body: {
-                    stateId: str(d, "stateId"),
-                    cityId: str(d, "cityId"),
-                    location: str(d, "location"),
-                    name: str(d, "name") || str(d, "location"),
-                    address: optStr(d, "address"),
-                    natureOfWork: optStr(d, "natureOfWork"),
-                    workingHours: optStr(d, "workingHours"),
-                    restInterval: optStr(d, "restInterval"),
-                  },
-                }),
-              )
-              await refresh()
-              toast.success("Site added")
-            }}
-          >
-            <PlaceFields clientCode={client.code} />
-            <SiteDetailFields />
-          </FormDialog>
         </div>
         <DataTable
+          toolbar={
+            <FormDialog
+              trigger={<><PlusIcon /> Add site</>}
+              title="Add site"
+              onSave={async (d) => {
+                await must(
+                  api.POST("/clients/{id}/sites", {
+                    params: { path: { id: client.id } },
+                    body: {
+                      stateId: str(d, "stateId"),
+                      cityId: str(d, "cityId"),
+                      location: str(d, "location"),
+                      name: str(d, "name") || str(d, "location"),
+                      address: optStr(d, "address"),
+                      natureOfWork: optStr(d, "natureOfWork"),
+                      workingHours: optStr(d, "workingHours"),
+                      restInterval: optStr(d, "restInterval"),
+                    },
+                  }),
+                )
+                await refresh()
+                toast.success("Site added")
+              }}
+            >
+              <PlaceFields clientCode={client.code} />
+              <SiteDetailFields />
+            </FormDialog>
+          }
           id="sites"
           queryKey={["sites", client.id]}
           fetch={(query) => api.GET("/clients/{id}/sites", { params: { path: { id: client.id }, query } })}

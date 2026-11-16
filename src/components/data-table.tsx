@@ -55,6 +55,7 @@ export function DataTable<T>({
   status,
   empty = "Nothing here yet.",
   height = "auto",
+  toolbar,
 }: {
   /** short and unique per page; prefixes the URL keys */
   id: string
@@ -71,6 +72,8 @@ export function DataTable<T>({
   empty?: string
   /** "auto" grows with its rows; "fill" takes the parent's free height (flex-1) and scrolls the rows inside */
   height?: "auto" | "fill"
+  /** extra buttons (e.g. Add …), shown right after Refresh */
+  toolbar?: ReactNode
 }) {
   const [sp, setSp] = useSearchParams()
   const k = (n: string) => `${id}_${n}`
@@ -167,6 +170,7 @@ export function DataTable<T>({
           <Button variant="outline" size="icon" aria-label="Refresh" title="Refresh" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCwIcon className={isFetching ? "animate-spin" : ""} />
           </Button>
+          {toolbar}
         </div>
       </div>
 
