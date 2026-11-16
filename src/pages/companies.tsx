@@ -197,12 +197,14 @@ export function CompanyPage() {
             </div>
             {/* icon only: tight space; names live in aria-label and the tooltip */}
             <div className="flex shrink-0 gap-1.5">
-              <Button variant="secondary" size="icon-sm" aria-label="Edit company" title="Edit" onClick={() => setDialog("edit")}>
+              <Button variant="outline" size="icon-sm" className="border-0 bg-background text-foreground shadow-sm hover:bg-muted" aria-label="Edit company" title="Edit" onClick={() => setDialog("edit")}>
                 <PencilIcon />
               </Button>
               <Button
-                variant={company.active ? "destructive" : "secondary"}
+                variant="outline"
                 size="icon-sm"
+                // solid face so it doesn't melt into the gradient (the stock variants are see-through)
+                className={`border-0 bg-background shadow-sm hover:bg-muted ${company.active ? "text-destructive" : "text-foreground"}`}
                 aria-label={company.active ? "Deactivate company" : "Activate company"}
                 title={company.active ? "Deactivate" : "Activate"}
                 onClick={() => setDialog("toggle")}
