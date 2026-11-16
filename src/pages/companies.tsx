@@ -190,7 +190,7 @@ export function CompanyPage() {
               <h1 className="text-2xl font-semibold">{company.name}</h1>
             </div>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="-mt-4 flex flex-wrap gap-2 self-start">
             <Button variant="outline" onClick={() => setDialog("edit")}>
               <PencilIcon /> Edit
             </Button>
