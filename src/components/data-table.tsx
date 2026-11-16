@@ -56,6 +56,7 @@ export function DataTable<T>({
   empty = "Nothing here yet.",
   height = "auto",
   toolbar,
+  compact = false,
 }: {
   /** short and unique per page; prefixes the URL keys */
   id: string
@@ -74,6 +75,8 @@ export function DataTable<T>({
   height?: "auto" | "fill"
   /** extra buttons (e.g. Add …), shown right after Refresh */
   toolbar?: ReactNode
+  /** small lists: no column picker, no pager (loads up to 100 rows), search sits beside Refresh */
+  compact?: boolean
 }) {
   const [sp, setSp] = useSearchParams()
   const k = (n: string) => `${id}_${n}`
@@ -97,7 +100,7 @@ export function DataTable<T>({
       { replace: true },
     )
 
-  const params: ListParams = { limit: size, offset: (pageNo - 1) * size, ...(q.trim() && { q: q.trim() }), ...(st && { status: st }) }
+  const params: ListParams = { limit: compact ? 100 : size, offset: compact ? 0 : (pageNo - 1) * size, ...(q.trim() && { q: q.trim() }), ...(st && { status: st }) }
   const { data, error, isFetching, refetch } = useQuery({
     queryKey: [...queryKey, "list", params],
     queryFn: () => must(fetch(params)),
@@ -120,20 +123,23 @@ export function DataTable<T>({
   const span = shown.length + (actions ? 1 : 0)
   const statusText = st ? status?.[st] : "All"
 
+  const search = (
+    <div className="relative w-full max-w-xs">
+      <SearchIcon aria-hidden className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
+      <Input
+        type="search"
+        aria-label={searchLabel}
+        placeholder={`${searchLabel}…`}
+        className="pl-8"
+        value={q}
+        onChange={(e) => set({ q: e.target.value })}
+      />
+    </div>
+  )
   return (
     <div className={`flex flex-col gap-3 ${height === "fill" ? "min-h-0 flex-1" : ""}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div className="relative w-full max-w-xs">
-          <SearchIcon aria-hidden className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            type="search"
-            aria-label={searchLabel}
-            placeholder={`${searchLabel}…`}
-            className="pl-8"
-            value={q}
-            onChange={(e) => set({ q: e.target.value })}
-          />
-        </div>
+        {!compact && search}
         <div className="flex flex-wrap items-center gap-2">
           {status && (
             <DropdownMenu>
@@ -149,7 +155,8 @@ export function DataTable<T>({
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          <DropdownMenu>
+          {compact && search}
+          {!compact && <DropdownMenu>
             <DropdownMenuTrigger render={<Button variant="outline" />}>
               <Columns3Icon /> Columns
             </DropdownMenuTrigger>
@@ -166,7 +173,7 @@ export function DataTable<T>({
                 </DropdownMenuCheckboxItem>
               ))}
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu>}
           <Button variant="outline" size="icon" aria-label="Refresh" title="Refresh" onClick={() => refetch()} disabled={isFetching}>
             <RefreshCwIcon className={isFetching ? "animate-spin" : ""} />
           </Button>
@@ -212,7 +219,7 @@ export function DataTable<T>({
         </Table>
       </div>
 
-      {meta && <Pager meta={meta} size={size} onPage={(p) => set({ page: p })} onSize={(s) => set({ size: s === SIZES[0] ? null : s })} />}
+      {meta && !compact && <Pager meta={meta} size={size} onPage={(p) => set({ page: p })} onSize={(s) => set({ size: s === SIZES[0] ? null : s })} />}
     </div>
   )
 }

@@ -29,7 +29,7 @@ function CategorySelect({ companyId, value }: { companyId: string; value?: strin
 
 function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
   return (
-    <section className="flex flex-col gap-3" aria-labelledby={id}>
+    <section className="flex flex-col gap-3 rounded-xl border bg-card p-4" aria-labelledby={id}>
       <h2 id={id} className="text-lg font-semibold">{title}</h2>
       {children}
     </section>
@@ -64,9 +64,10 @@ export function Masters({ companyId }: { companyId: string }) {
       >
         <ErrorText error={cats.error?.message} />
         <DataTable
+          compact
           toolbar={
             <FormDialog
-              trigger={<><PlusIcon /> Add category</>}
+              trigger={<><PlusIcon /> Add</>}
               title="Add skill category"
               onSave={async (d) => {
                 const sort = str(d, "sortOrder")
@@ -98,9 +99,10 @@ export function Masters({ companyId }: { companyId: string }) {
       >
         <ErrorText error={wages.error?.message} />
         <DataTable
+          compact
           toolbar={
             <FormDialog
-              trigger={<><PlusIcon /> Add rate</>}
+              trigger={<><PlusIcon /> Add</>}
               title="Add minimum wage"
               onSave={async (d) => {
                 await must(
@@ -152,9 +154,10 @@ export function Masters({ companyId }: { companyId: string }) {
       >
         <ErrorText error={desigs.error?.message} />
         <DataTable
+          compact
           toolbar={
             <FormDialog
-              trigger={<><PlusIcon /> Set designation</>}
+              trigger={<><PlusIcon /> Add</>}
               title="Set designation's skill category"
               onSave={async (d) => {
                 await must(api.PUT("/companies/{id}/designations", { ...path, body: { designation: str(d, "designation"), skillCategoryId: str(d, "skillCategoryId") } }))

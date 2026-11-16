@@ -312,7 +312,7 @@ export function CompanyPage() {
             ]}
           />
           </TabsContent>
-          <TabsContent value="masters" className="overflow-auto rounded-xl border bg-card p-4 lg:min-h-0 lg:flex-1">
+          <TabsContent value="masters" className="overflow-auto lg:min-h-0 lg:flex-1">
             <Masters companyId={company.id} />
           </TabsContent>
         </Tabs>
