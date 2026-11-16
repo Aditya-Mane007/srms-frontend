@@ -57,6 +57,7 @@ export function DataTable<T>({
   height = "auto",
   toolbar,
   compact = false,
+  title,
 }: {
   /** short and unique per page; prefixes the URL keys */
   id: string
@@ -77,6 +78,8 @@ export function DataTable<T>({
   toolbar?: ReactNode
   /** small lists: no column picker, no pager (loads up to 100 rows), search sits beside Refresh */
   compact?: boolean
+  /** compact only: heading shown on the left of the toolbar */
+  title?: ReactNode
 }) {
   const [sp, setSp] = useSearchParams()
   const k = (n: string) => `${id}_${n}`
@@ -139,7 +142,7 @@ export function DataTable<T>({
   return (
     <div className={`flex flex-col gap-3 ${height === "fill" ? "min-h-0 flex-1" : ""}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        {!compact && search}
+        {compact ? title : search}
         <div className="flex flex-wrap items-center gap-2">
           {status && (
             <DropdownMenu>

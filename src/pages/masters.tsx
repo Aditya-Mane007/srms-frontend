@@ -27,10 +27,9 @@ function CategorySelect({ companyId, value }: { companyId: string; value?: strin
   )
 }
 
-function Section({ id, title, children }: { id: string; title: string; children: React.ReactNode }) {
+function Section({ id, children }: { id: string; children: React.ReactNode }) {
   return (
     <section className="flex flex-col gap-3 rounded-xl border bg-card p-4" aria-labelledby={id}>
-      <h2 id={id} className="text-lg font-semibold">{title}</h2>
       {children}
     </section>
   )
@@ -60,11 +59,11 @@ export function Masters({ companyId }: { companyId: string }) {
     <div className="flex flex-col gap-6">
       <Section
         id="cats-h"
-        title="Skill categories"
       >
         <ErrorText error={cats.error?.message} />
         <DataTable
           compact
+          title={<h2 id="cats-h" className="text-lg font-semibold">Skill categories</h2>}
           toolbar={
             <FormDialog
               trigger={<><PlusIcon /> Add</>}
@@ -95,11 +94,11 @@ export function Masters({ companyId }: { companyId: string }) {
 
       <Section
         id="wages-h"
-        title="Minimum wages"
       >
         <ErrorText error={wages.error?.message} />
         <DataTable
           compact
+          title={<h2 id="wages-h" className="text-lg font-semibold">Minimum wages</h2>}
           toolbar={
             <FormDialog
               trigger={<><PlusIcon /> Add</>}
@@ -150,11 +149,11 @@ export function Masters({ companyId }: { companyId: string }) {
 
       <Section
         id="desig-h"
-        title="Designations"
       >
         <ErrorText error={desigs.error?.message} />
         <DataTable
           compact
+          title={<h2 id="desig-h" className="text-lg font-semibold">Designations</h2>}
           toolbar={
             <FormDialog
               trigger={<><PlusIcon /> Add</>}
