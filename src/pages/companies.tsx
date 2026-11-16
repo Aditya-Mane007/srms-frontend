@@ -183,7 +183,7 @@ export function CompanyPage() {
       <div className="grid gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(260px,340px)_minmax(0,1fr)]">
         <aside className="flex flex-col rounded-xl border bg-card lg:min-h-0">
           {/* theme blues deep → bright with a soft corner glow; stays dark enough for white text end to end */}
-          <div className="flex items-center justify-between gap-3 rounded-t-xl border-b bg-[radial-gradient(circle_at_100%_0%,oklch(1_0_0/0.18),transparent_55%),linear-gradient(135deg,var(--chart-1),var(--primary)_55%,var(--chart-3))] p-4 text-primary-foreground">
+          <div className="flex items-center justify-between gap-3 rounded-t-xl border-b bg-primary p-4 text-primary-foreground">
             <div className="flex min-w-0 items-center gap-3">
               <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-background/20">
                 <Building2Icon aria-hidden className="size-6" />
@@ -191,20 +191,20 @@ export function CompanyPage() {
               <div className="min-w-0">
                 <h1 className="truncate text-lg font-semibold">{company.name}</h1>
                 <p className="flex items-center gap-2 text-sm text-primary-foreground/80">
-                  <span className="font-mono">{company.code}</span> {status(company.active)}
+                  <span className="font-mono">{company.code}</span> <Badge className={company.active ? "bg-green-600 text-white" : "bg-white text-neutral-700"}>{company.active ? "Active" : "Inactive"}</Badge>
                 </p>
               </div>
             </div>
             {/* icon only: tight space; names live in aria-label and the tooltip */}
             <div className="flex shrink-0 gap-1.5">
-              <Button variant="outline" size="icon-sm" className="border-0 bg-background text-foreground shadow-sm hover:bg-muted" aria-label="Edit company" title="Edit" onClick={() => setDialog("edit")}>
+              <Button variant="outline" size="icon-sm" className="border-0 bg-white text-neutral-900 shadow-sm hover:bg-white/90" aria-label="Edit company" title="Edit" onClick={() => setDialog("edit")}>
                 <PencilIcon />
               </Button>
               <Button
                 variant="outline"
                 size="icon-sm"
-                // solid face so it doesn't melt into the gradient (the stock variants are see-through)
-                className={`border-0 bg-background shadow-sm hover:bg-muted ${company.active ? "text-destructive" : "text-foreground"}`}
+                // solid white face on the coloured header
+                className={`border-0 bg-white shadow-sm hover:bg-white/90 ${company.active ? "text-destructive" : "text-neutral-900"}`}
                 aria-label={company.active ? "Deactivate company" : "Activate company"}
                 title={company.active ? "Deactivate" : "Activate"}
                 onClick={() => setDialog("toggle")}
