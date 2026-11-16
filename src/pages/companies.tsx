@@ -191,10 +191,10 @@ export function CompanyPage() {
             </div>
           </div>
           <div className="-mt-4 flex flex-wrap gap-2 self-start">
-            <Button variant="outline" onClick={() => setDialog("edit")}>
+            <Button variant="outline" className="bg-background shadow-sm" onClick={() => setDialog("edit")}>
               <PencilIcon /> Edit
             </Button>
-            <Button variant={company.active ? "destructive" : "outline"} onClick={() => setDialog("toggle")}>
+            <Button variant={company.active ? "destructive" : "outline"} className="bg-background shadow-sm" onClick={() => setDialog("toggle")}>
               <PowerIcon /> {company.active ? "Deactivate" : "Activate"}
             </Button>
           </div>
