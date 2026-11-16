@@ -212,11 +212,6 @@ export function CompanyPage() {
             {(
               [
                 ["Address", company.address],
-                ["Owner", company.ownerName],
-                ["Labour ID (LIN)", company.lin],
-                ["PF code", company.pfCode],
-                ["ESIC code", company.esicCode],
-                ["PT registration no.", company.ptRegNo],
                 ["Sub-contractor", company.subContractorName],
                 ["Sub-contractor address", company.subContractorAddress],
               ] as const
