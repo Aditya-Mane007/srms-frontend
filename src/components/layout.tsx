@@ -55,7 +55,8 @@ export function AppLayout() {
 export type Crumb = { label: string; to?: string }
 
 /** Top bar for each page: sidebar toggle, breadcrumbs, theme toggle. */
-export function Page({ crumbs, actions, children }: { crumbs: Crumb[]; actions?: ReactNode; children: ReactNode }) {
+/** `bare` skips the title row, for pages that draw their own header. */
+export function Page({ crumbs, actions, children, bare }: { crumbs: Crumb[]; actions?: ReactNode; children: ReactNode; bare?: boolean }) {
   const title = crumbs[crumbs.length - 1]?.label
   return (
     <>
@@ -79,10 +80,12 @@ export function Page({ crumbs, actions, children }: { crumbs: Crumb[]; actions?:
         </div>
       </header>
       <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-auto p-4 md:p-6">
-        <div className="flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-2xl font-semibold">{title}</h1>
-          {actions}
-        </div>
+        {!bare && (
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h1 className="text-2xl font-semibold">{title}</h1>
+            {actions}
+          </div>
+        )}
         {children}
       </div>
     </>

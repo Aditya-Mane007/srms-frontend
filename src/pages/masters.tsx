@@ -41,9 +41,18 @@ function Section({ id, title, action, children }: { id: string; title: string; a
 
 export function MastersPage() {
   const { companyId = "" } = useParams()
-  const qc = useQueryClient()
   const { data: companies } = useCompanies()
   const company = companies?.find((c) => c.id === companyId)
+  return (
+    <Page crumbs={[{ label: "Companies", to: "/companies" }, { label: company?.name ?? "…", to: `/companies/${companyId}` }, { label: "Masters" }]}>
+      <Masters companyId={companyId} />
+    </Page>
+  )
+}
+
+/** Skill categories, minimum wages and designations of one company. */
+export function Masters({ companyId }: { companyId: string }) {
+  const qc = useQueryClient()
   const cats = useSkillCategories(companyId)
   const wages = useMinimumWages(companyId)
   const desigs = useDesignations(companyId)
@@ -51,7 +60,7 @@ export function MastersPage() {
   const path = { params: { path: { id: companyId } } }
 
   return (
-    <Page crumbs={[{ label: "Companies", to: "/companies" }, { label: company?.name ?? "…", to: `/companies/${companyId}` }, { label: "Masters" }]}>
+    <div className="flex flex-col gap-6">
       <Section
         id="cats-h"
         title="Skill categories"
@@ -171,6 +180,6 @@ export function MastersPage() {
           ]}
         />
       </Section>
-    </Page>
+    </div>
   )
 }

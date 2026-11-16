@@ -1,7 +1,7 @@
 import { useState } from "react"
-import { Link, useNavigate, useParams } from "react-router"
+import { Link, useNavigate, useParams, useSearchParams } from "react-router"
 import { useQueryClient } from "@tanstack/react-query"
-import { EyeIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, PowerIcon, Settings2Icon } from "lucide-react"
+import { Building2Icon, EyeIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, PowerIcon, Settings2Icon, UsersIcon } from "lucide-react"
 import { toast } from "sonner"
 import { api, must, type Schemas } from "@/api/client"
 import { useClients, useCompanies, useSelection } from "@/data"
@@ -11,6 +11,8 @@ import { ConfirmDialog, FormDialog } from "@/components/form-dialog"
 import { PlaceFields, SiteDetailFields, TextField } from "@/components/fields"
 import { optStr, Page, str } from "@/components/layout"
 import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Masters } from "@/pages/masters"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
@@ -95,31 +97,14 @@ export function CompaniesPage() {
   )
 }
 
-/** Row menu: icon-only trigger (tight column), icon + text items. Deactivate instead of delete: history stays. */
-function CompanyActions({ c }: { c: Schemas["Company"] }) {
+type CompanyDialog = "edit" | "toggle" | null
+
+/** Edit form and activate/deactivate confirm for one company, opened by `dialog`. */
+function CompanyDialogs({ c, dialog, setDialog }: { c: Schemas["Company"]; dialog: CompanyDialog; setDialog: (d: CompanyDialog) => void }) {
   const qc = useQueryClient()
-  const navigate = useNavigate()
-  const { select } = useSelection()
-  const [dialog, setDialog] = useState<"edit" | "toggle" | null>(null)
   const close = (o: boolean) => !o && setDialog(null)
   return (
     <>
-      <DropdownMenu>
-        <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={`Actions for ${c.name}`} />}>
-          <MoreHorizontalIcon />
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onClick={() => (select({ companyId: c.id }), navigate(`/companies/${c.id}`))}>
-            <EyeIcon aria-hidden /> View details
-          </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setDialog("edit")}>
-            <PencilIcon aria-hidden /> Edit details
-          </DropdownMenuItem>
-          <DropdownMenuItem variant={c.active ? "destructive" : "default"} onClick={() => setDialog("toggle")}>
-            <PowerIcon aria-hidden /> {c.active ? "Deactivate" : "Activate"}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
       <FormDialog
         open={dialog === "edit"}
         onOpenChange={close}
@@ -153,109 +138,176 @@ function CompanyActions({ c }: { c: Schemas["Company"] }) {
   )
 }
 
+/** Row menu: icon-only trigger (tight column), icon + text items. Deactivate instead of delete: history stays. */
+function CompanyActions({ c }: { c: Schemas["Company"] }) {
+  const navigate = useNavigate()
+  const { select } = useSelection()
+  const [dialog, setDialog] = useState<CompanyDialog>(null)
+  return (
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger render={<Button variant="ghost" size="icon-sm" aria-label={`Actions for ${c.name}`} />}>
+          <MoreHorizontalIcon />
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end">
+          <DropdownMenuItem onClick={() => (select({ companyId: c.id }), navigate(`/companies/${c.id}`))}>
+            <EyeIcon aria-hidden /> View details
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setDialog("edit")}>
+            <PencilIcon aria-hidden /> Edit details
+          </DropdownMenuItem>
+          <DropdownMenuItem variant={c.active ? "destructive" : "default"} onClick={() => setDialog("toggle")}>
+            <PowerIcon aria-hidden /> {c.active ? "Deactivate" : "Activate"}
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <CompanyDialogs c={c} dialog={dialog} setDialog={setDialog} />
+    </>
+  )
+}
+
+/** Company profile: gradient header with actions, details on the left, Clients / Masters tabs on the right. */
 export function CompanyPage() {
   const { companyId = "" } = useParams()
   const qc = useQueryClient()
+  const [sp, setSp] = useSearchParams()
+  const [dialog, setDialog] = useState<CompanyDialog>(null)
   const { data: companies } = useCompanies()
   const company = companies?.find((c) => c.id === companyId)
   if (!company) return <Page crumbs={[{ label: "Companies", to: "/companies" }, { label: companies ? "Not found" : "Loading…" }]}>{null}</Page>
+  const tab = sp.get("tab") === "masters" ? "masters" : "clients"
 
   return (
-    <Page
-      crumbs={[{ label: "Companies", to: "/companies" }, { label: company.name }]}
-      actions={
-        <div className="flex flex-wrap gap-2">
-          <Link className="inline-flex h-8 items-center rounded-lg border px-2.5 text-sm" to={`/companies/${company.id}/masters`}>
-            <Settings2Icon aria-hidden className="mr-1 size-4" /> Masters
-          </Link>
-          <FormDialog
-            trigger={<><PencilIcon /> Edit company</>}
-            title="Edit company"
-            onSave={async (d) => {
-              await must(api.PATCH("/companies/{id}", { params: { path: { id: company.id } }, body: companyBody(d) }))
-              await qc.invalidateQueries({ queryKey: ["companies"] })
-              toast.success("Company saved")
-            }}
-          >
-            <CompanyFields c={company} />
-          </FormDialog>
-        </div>
-      }
-    >
-      <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-[max-content_1fr]">
-        {(
-          [
-            ["Code", company.code],
-            ["Address", company.address],
-            ["Owner", company.ownerName],
-            ["Labour ID", company.lin],
-            ["PF / ESIC / PT", [company.pfCode, company.esicCode, company.ptRegNo].map((v) => v ?? "—").join(" / ")],
-          ] as const
-        ).map(([k, v]) => (
-          <div key={k} className="contents">
-            <dt className="text-muted-foreground">{k}</dt>
-            <dd>{v || "—"}</dd>
+    <Page bare crumbs={[{ label: "Companies", to: "/companies" }, { label: company.name }]}>
+      <header className="shrink-0 overflow-hidden rounded-xl border">
+        <div aria-hidden className="h-28 bg-linear-to-r from-primary via-primary/60 to-secondary" />
+        <div className="flex flex-wrap items-end justify-between gap-4 px-4 pb-4 md:px-6">
+          <div className="flex items-end gap-4">
+            <div className="-mt-12 grid size-24 shrink-0 place-items-center rounded-2xl border-4 border-background bg-linear-to-br from-primary to-primary/70 text-primary-foreground shadow-md">
+              <Building2Icon aria-hidden className="size-10" />
+            </div>
+            <div className="pb-1">
+              <h1 className="text-2xl font-semibold">{company.name}</h1>
+              <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span className="font-mono">{company.code}</span> {status(company.active)}
+              </p>
+            </div>
           </div>
-        ))}
-      </dl>
-
-      <section className="flex flex-col gap-3" aria-labelledby="clients-h">
-        <div className="flex items-center justify-between">
-          <h2 id="clients-h" className="text-lg font-semibold">Clients</h2>
-          <FormDialog
-            trigger={<><PlusIcon /> Add client</>}
-            title="Add client"
-            onSave={async (d) => {
-              await must(
-                api.POST("/companies/{id}/clients", {
-                  params: { path: { id: company.id } },
-                  body: {
-                    code: str(d, "code"),
-                    name: str(d, "clientName"),
-                    address: optStr(d, "clientAddress"),
-                    site: {
-                      stateId: str(d, "stateId"),
-                      cityId: str(d, "cityId"),
-                      location: str(d, "location"),
-                      ...(str(d, "name") && { name: str(d, "name") }),
-                      address: optStr(d, "address"),
-                      natureOfWork: optStr(d, "natureOfWork"),
-                      workingHours: optStr(d, "workingHours"),
-                      restInterval: optStr(d, "restInterval"),
-                    },
-                  },
-                }),
-              )
-              await qc.invalidateQueries({ queryKey: ["clients", company.id] })
-              toast.success("Client and its default site added")
-            }}
-          >
-            <ClientCreateFields />
-          </FormDialog>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" onClick={() => setDialog("edit")}>
+              <PencilIcon /> Edit
+            </Button>
+            <Button variant={company.active ? "destructive" : "outline"} onClick={() => setDialog("toggle")}>
+              <PowerIcon /> {company.active ? "Deactivate" : "Activate"}
+            </Button>
+          </div>
         </div>
-          <DataTable
-          id="clients"
-          queryKey={["clients", company.id]}
-          fetch={(query) => api.GET("/companies/{id}/clients", { params: { path: { id: company.id }, query } })}
-          rowKey={(c) => c.id}
-          searchLabel="Search clients"
-          status={{ active: "Active", inactive: "Inactive" }}
-          empty="No clients yet."
-          columns={[
-            { key: "code", label: "Code", className: "font-mono", cell: (c) => c.code },
-            {
-              key: "name",
-              label: "Name",
-              cell: (c) => (
-                <Link className="underline-offset-2 hover:underline" to={`/companies/${company.id}/clients/${c.id}`}>
-                  {c.name}
-                </Link>
-              ),
-            },
-            { key: "status", label: "Status", cell: (c) => status(c.active) },
-          ]}
-        />
-      </section>
+      </header>
+      <CompanyDialogs c={company} dialog={dialog} setDialog={setDialog} />
+
+      <div className="grid items-start gap-6 lg:grid-cols-[minmax(260px,320px)_1fr]">
+        <section aria-labelledby="info-h" className="rounded-xl border bg-muted/30 p-4">
+          <h2 id="info-h" className="mb-3 font-semibold">Information</h2>
+          <dl className="flex flex-col gap-3 text-sm">
+            {(
+              [
+                ["Code", company.code],
+                ["Name", company.name],
+                ["Address", company.address],
+                ["Owner", company.ownerName],
+                ["Labour ID (LIN)", company.lin],
+                ["PF code", company.pfCode],
+                ["ESIC code", company.esicCode],
+                ["PT registration no.", company.ptRegNo],
+                ["Sub-contractor", company.subContractorName],
+                ["Sub-contractor address", company.subContractorAddress],
+              ] as const
+            ).map(([k, v]) => (
+              <div key={k} className="flex justify-between gap-4">
+                <dt className="text-muted-foreground">{k}</dt>
+                <dd className="text-right break-words">{v || "—"}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+
+        <Tabs
+          value={tab}
+          onValueChange={(v) => setSp((p) => (v === "clients" ? p.delete("tab") : p.set("tab", String(v)), p), { replace: true })}
+          className="min-w-0"
+        >
+          <TabsList variant="line">
+            <TabsTrigger value="clients">
+              <UsersIcon aria-hidden /> Clients
+            </TabsTrigger>
+            <TabsTrigger value="masters">
+              <Settings2Icon aria-hidden /> Masters
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="clients" className="pt-3">
+          <section className="flex flex-col gap-3" aria-labelledby="clients-h">
+            <div className="flex items-center justify-end">
+              <h2 id="clients-h" className="sr-only">Clients</h2>
+              <FormDialog
+                trigger={<><PlusIcon /> Add client</>}
+                title="Add client"
+                onSave={async (d) => {
+                  await must(
+                    api.POST("/companies/{id}/clients", {
+                      params: { path: { id: company.id } },
+                      body: {
+                        code: str(d, "code"),
+                        name: str(d, "clientName"),
+                        address: optStr(d, "clientAddress"),
+                        site: {
+                          stateId: str(d, "stateId"),
+                          cityId: str(d, "cityId"),
+                          location: str(d, "location"),
+                          ...(str(d, "name") && { name: str(d, "name") }),
+                          address: optStr(d, "address"),
+                          natureOfWork: optStr(d, "natureOfWork"),
+                          workingHours: optStr(d, "workingHours"),
+                          restInterval: optStr(d, "restInterval"),
+                        },
+                      },
+                    }),
+                  )
+                  await qc.invalidateQueries({ queryKey: ["clients", company.id] })
+                  toast.success("Client and its default site added")
+                }}
+              >
+                <ClientCreateFields />
+              </FormDialog>
+            </div>
+              <DataTable
+              id="clients"
+              queryKey={["clients", company.id]}
+              fetch={(query) => api.GET("/companies/{id}/clients", { params: { path: { id: company.id }, query } })}
+              rowKey={(c) => c.id}
+              searchLabel="Search clients"
+              status={{ active: "Active", inactive: "Inactive" }}
+              empty="No clients yet."
+              columns={[
+                { key: "code", label: "Code", className: "font-mono", cell: (c) => c.code },
+                {
+                  key: "name",
+                  label: "Name",
+                  cell: (c) => (
+                    <Link className="underline-offset-2 hover:underline" to={`/companies/${company.id}/clients/${c.id}`}>
+                      {c.name}
+                    </Link>
+                  ),
+                },
+                { key: "status", label: "Status", cell: (c) => status(c.active) },
+              ]}
+            />
+          </section>
+          </TabsContent>
+          <TabsContent value="masters" className="pt-3">
+            <Masters companyId={company.id} />
+          </TabsContent>
+        </Tabs>
+      </div>
     </Page>
   )
 }
