@@ -187,7 +187,9 @@ export function CompanyPage() {
               <Building2Icon aria-hidden className="size-7" />
             </div>
             <div>
-              <h1 className="text-2xl font-semibold">{company.name}</h1>
+              <h1 className="text-2xl font-semibold">
+                {company.name} <span className="text-muted-foreground">·</span> <span className="font-mono text-muted-foreground">{company.code}</span>
+              </h1>
             </div>
           </div>
           <div className="-mt-4 flex flex-wrap gap-2 self-start">
@@ -209,8 +211,6 @@ export function CompanyPage() {
           <dl className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto text-sm">
             {(
               [
-                ["Code", company.code],
-                ["Name", company.name],
                 ["Address", company.address],
                 ["Owner", company.ownerName],
                 ["Labour ID (LIN)", company.lin],
