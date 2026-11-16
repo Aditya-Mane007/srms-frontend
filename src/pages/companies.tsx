@@ -202,10 +202,11 @@ export function CompanyPage() {
       </header>
       <CompanyDialogs c={company} dialog={dialog} setDialog={setDialog} />
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(260px,320px)_1fr]">
-        <section aria-labelledby="info-h" className="rounded-xl border bg-muted/30 p-4">
+      {/* banner stays; on large screens the panels fill the rest and only their insides scroll */}
+      <div className="grid gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)]">
+        <section aria-labelledby="info-h" className="flex flex-col rounded-xl border bg-muted/30 p-4 lg:min-h-0">
           <h2 id="info-h" className="mb-3 font-semibold">Information</h2>
-          <dl className="flex flex-col gap-3 text-sm">
+          <dl className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto text-sm">
             {(
               [
                 ["Code", company.code],
@@ -220,9 +221,9 @@ export function CompanyPage() {
                 ["Sub-contractor address", company.subContractorAddress],
               ] as const
             ).map(([k, v]) => (
-              <div key={k} className="flex justify-between gap-4">
-                <dt className="text-muted-foreground">{k}</dt>
-                <dd className="text-right break-words">{v || "—"}</dd>
+              <div key={k} className="flex flex-col gap-0.5">
+                <dt className="text-xs text-muted-foreground">{k}</dt>
+                <dd className="break-words">{v || "—"}</dd>
               </div>
             ))}
           </dl>
@@ -231,7 +232,7 @@ export function CompanyPage() {
         <Tabs
           value={tab}
           onValueChange={(v) => setSp((p) => (v === "clients" ? p.delete("tab") : p.set("tab", String(v)), p), { replace: true })}
-          className="flex min-w-0 flex-col gap-3"
+          className="flex min-w-0 flex-col gap-3 lg:min-h-0"
         >
           <TabsList variant="line">
             <TabsTrigger value="clients" className="flex-none">
@@ -242,7 +243,7 @@ export function CompanyPage() {
             </TabsTrigger>
           </TabsList>
           {/* fixed-height box; the table fills it and scrolls its rows */}
-          <TabsContent value="clients" className="flex h-[70svh] flex-col rounded-xl border bg-card p-4">
+          <TabsContent value="clients" className="flex h-[70svh] flex-col rounded-xl border bg-card p-4 lg:h-auto lg:min-h-0 lg:flex-1">
             <DataTable
               toolbar={
                 <FormDialog
@@ -299,7 +300,7 @@ export function CompanyPage() {
             ]}
           />
           </TabsContent>
-          <TabsContent value="masters">
+          <TabsContent value="masters" className="lg:min-h-0 lg:flex-1 lg:overflow-auto">
             <Masters companyId={company.id} />
           </TabsContent>
         </Tabs>
