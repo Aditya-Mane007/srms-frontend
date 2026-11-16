@@ -182,8 +182,8 @@ export function CompanyPage() {
       {/* on large screens the panels stay put and only their insides scroll */}
       <div className="grid gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(260px,340px)_minmax(0,1fr)]">
         <aside className="flex flex-col rounded-xl border bg-card lg:min-h-0">
-          {/* gradient as before; text sits on the primary end, buttons are solid so they read on the light end */}
-          <div className="flex items-center justify-between gap-3 rounded-t-xl border-b bg-linear-to-r from-primary via-primary/60 to-secondary p-4 text-primary-foreground">
+          {/* theme blues deep → bright with a soft corner glow; stays dark enough for white text end to end */}
+          <div className="flex items-center justify-between gap-3 rounded-t-xl border-b bg-[radial-gradient(circle_at_100%_0%,oklch(1_0_0/0.18),transparent_55%),linear-gradient(135deg,var(--chart-1),var(--primary)_55%,var(--chart-3))] p-4 text-primary-foreground">
             <div className="flex min-w-0 items-center gap-3">
               <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-background/20">
                 <Building2Icon aria-hidden className="size-6" />
