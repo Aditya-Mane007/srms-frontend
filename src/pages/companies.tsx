@@ -244,7 +244,7 @@ export function CompanyPage() {
           onValueChange={(v) => setSp((p) => (v === "clients" ? p.delete("tab") : p.set("tab", String(v)), p), { replace: true })}
           className="flex min-w-0 flex-col gap-3 lg:min-h-0"
         >
-          <TabsList variant="line" className="h-11 w-full justify-start rounded-xl border bg-card px-2">
+          <TabsList variant="line">
             <TabsTrigger value="clients" className="flex-none">
               <UsersIcon aria-hidden /> Clients
             </TabsTrigger>
