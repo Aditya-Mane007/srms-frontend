@@ -181,16 +181,13 @@ export function CompanyPage() {
     <Page bare crumbs={[{ label: "Companies", to: "/companies" }, { label: company.name }]}>
       <header className="shrink-0 overflow-hidden rounded-xl border">
         <div aria-hidden className="h-14 bg-linear-to-r from-primary via-primary/60 to-secondary" />
-        <div className="flex flex-wrap items-end justify-between gap-4 px-4 pb-4 md:px-6">
-          <div className="flex items-end gap-4">
+        <div className="flex flex-wrap items-center justify-between gap-4 px-4 pb-4 md:px-6">
+          <div className="flex items-center gap-4">
             <div className="-mt-8 grid size-16 shrink-0 place-items-center rounded-2xl border-4 border-background bg-linear-to-br from-primary to-primary/70 text-primary-foreground shadow-md">
               <Building2Icon aria-hidden className="size-7" />
             </div>
-            <div className="pb-1">
+            <div>
               <h1 className="text-2xl font-semibold">{company.name}</h1>
-              <p className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span className="font-mono">{company.code}</span> {status(company.active)}
-              </p>
             </div>
           </div>
           <div className="flex flex-wrap gap-2">
