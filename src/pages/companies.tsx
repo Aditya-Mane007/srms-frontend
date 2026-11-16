@@ -211,9 +211,10 @@ export function CompanyPage() {
               </Button>
             </div>
           </div>
-          <section aria-labelledby="info-h" className="overflow-auto p-4 lg:min-h-0">
+          <section aria-labelledby="info-h" className="flex flex-col p-4 lg:min-h-0">
             <h2 id="info-h" className="mb-3 text-sm font-semibold">Information</h2>
-            <dl className="flex flex-col gap-3 text-sm">
+            {/* heading stays; only the list scrolls */}
+            <dl className="flex min-h-0 flex-col gap-3 overflow-auto text-sm">
               {(
                 [
                   ["Code", company.code],
