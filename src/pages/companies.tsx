@@ -182,24 +182,32 @@ export function CompanyPage() {
       {/* on large screens the panels stay put and only their insides scroll */}
       <div className="grid gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(260px,340px)_minmax(0,1fr)]">
         <aside className="flex flex-col rounded-xl border bg-card lg:min-h-0">
-          <div className="flex flex-col gap-3 border-b p-4">
-            <div className="flex items-center gap-3">
-              <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+          {/* gradient as before; text sits on the primary end, buttons are solid so they read on the light end */}
+          <div className="flex items-center justify-between gap-3 rounded-t-xl border-b bg-linear-to-r from-primary via-primary/60 to-secondary p-4 text-primary-foreground">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="grid size-12 shrink-0 place-items-center rounded-xl bg-background/20">
                 <Building2Icon aria-hidden className="size-6" />
               </div>
               <div className="min-w-0">
                 <h1 className="truncate text-lg font-semibold">{company.name}</h1>
-                <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                <p className="flex items-center gap-2 text-sm text-primary-foreground/80">
                   <span className="font-mono">{company.code}</span> {status(company.active)}
                 </p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" onClick={() => setDialog("edit")}>
-                <PencilIcon /> Edit
+            {/* icon only: tight space; names live in aria-label and the tooltip */}
+            <div className="flex shrink-0 gap-1.5">
+              <Button variant="secondary" size="icon-sm" aria-label="Edit company" title="Edit" onClick={() => setDialog("edit")}>
+                <PencilIcon />
               </Button>
-              <Button variant={company.active ? "destructive" : "outline"} size="sm" onClick={() => setDialog("toggle")}>
-                <PowerIcon /> {company.active ? "Deactivate" : "Activate"}
+              <Button
+                variant={company.active ? "destructive" : "secondary"}
+                size="icon-sm"
+                aria-label={company.active ? "Deactivate company" : "Activate company"}
+                title={company.active ? "Deactivate" : "Activate"}
+                onClick={() => setDialog("toggle")}
+              >
+                <PowerIcon />
               </Button>
             </div>
           </div>
@@ -220,9 +228,9 @@ export function CompanyPage() {
                   ["Sub-contractor address", company.subContractorAddress],
                 ] as const
               ).map(([k, v]) => (
-                <div key={k} className="flex justify-between gap-4">
-                  <dt className="shrink-0 text-muted-foreground">{k}</dt>
-                  <dd className="text-right break-words">{v || "—"}</dd>
+                <div key={k} className="flex flex-col gap-0.5">
+                  <dt className="text-xs text-muted-foreground">{k}</dt>
+                  <dd className="break-words">{v || "—"}</dd>
                 </div>
               ))}
             </dl>
