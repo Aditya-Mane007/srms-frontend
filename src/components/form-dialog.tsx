@@ -1,14 +1,15 @@
-import { SaveIcon } from "lucide-react"
+import { SaveIcon, XIcon } from "lucide-react"
 import { useState, type ReactNode } from "react"
 import { ErrorText, useSubmit } from "@/components/layout"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { FieldGroup } from "@/components/ui/field"
 
 /** A button that opens a form in a dialog; closes when `onSave` resolves, shows its error otherwise. */
 export function FormDialog({
   trigger,
   title,
+  description,
   submitLabel = "Save",
   submitIcon = <SaveIcon />,
   onSave,
@@ -19,6 +20,8 @@ export function FormDialog({
   /** omit when opened from elsewhere (e.g. a row menu) via `open` */
   trigger?: ReactNode
   title: string
+  /** one line under the title: what this dialog does */
+  description: ReactNode
   submitLabel?: string
   submitIcon?: ReactNode
   onSave: (data: FormData) => Promise<void>
@@ -36,9 +39,10 @@ export function FormDialog({
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {trigger && <DialogTrigger render={<Button variant="outline" />}>{trigger}</DialogTrigger>}
-      <DialogContent className="flex max-h-[90svh] flex-col gap-0 sm:max-w-lg [&>[data-slot=dialog-close]]:top-[18px] [&>[data-slot=dialog-close]]:right-4">
-        <DialogHeader className="-mx-4 -mt-4 h-16 shrink-0 justify-center border-b p-4">
+      <DialogContent className="flex max-h-[90svh] flex-col gap-0 sm:max-w-lg">
+        <DialogHeader className="-mx-4 -mt-4 shrink-0 border-b p-4 pr-12">
           <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{description}</DialogDescription>
         </DialogHeader>
         {/* header and footer stay put; only the fields scroll */}
         <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
@@ -47,6 +51,9 @@ export function FormDialog({
             <ErrorText error={error} />
           </FieldGroup>
           <DialogFooter className="h-16 shrink-0 justify-center bg-transparent sm:items-center">
+            <DialogClose render={<Button type="button" variant="outline" />}>
+              <XIcon /> Cancel
+            </DialogClose>
             <Button type="submit" disabled={busy}>
               {submitIcon} {busy ? "Saving…" : submitLabel}
             </Button>
@@ -86,12 +93,12 @@ export function ConfirmDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{title}</DialogTitle>
+          <DialogDescription>{children}</DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          <div className="text-sm text-muted-foreground">{children}</div>
           <ErrorText error={error} />
           <DialogFooter>
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>Cancel</Button>
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}><XIcon /> Cancel</Button>
             <Button type="submit" variant={destructive ? "destructive" : "default"} disabled={busy}>
               {icon} {busy ? "Working…" : confirmLabel}
             </Button>

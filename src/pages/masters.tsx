@@ -68,6 +68,7 @@ export function Masters({ companyId }: { companyId: string }) {
             <FormDialog
               trigger={<><PlusIcon /> Add</>}
               title="Add skill category"
+              description="Skill categories group designations for minimum wages."
               onSave={async (d) => {
                 const sort = str(d, "sortOrder")
                 await must(api.POST("/companies/{id}/skill-categories", { ...path, body: { code: str(d, "code"), name: str(d, "name"), ...(sort && { sortOrder: Number(sort) }) } }))
@@ -103,6 +104,7 @@ export function Masters({ companyId }: { companyId: string }) {
             <FormDialog
               trigger={<><PlusIcon /> Add</>}
               title="Add minimum wage"
+              description="The minimum wage of a skill category from a date onwards."
               onSave={async (d) => {
                 await must(
                   api.POST("/companies/{id}/minimum-wages", {
@@ -158,6 +160,7 @@ export function Masters({ companyId }: { companyId: string }) {
             <FormDialog
               trigger={<><PlusIcon /> Add</>}
               title="Set designation's skill category"
+              description="Map a designation, as written in the paysheet, to its skill category."
               onSave={async (d) => {
                 await must(api.PUT("/companies/{id}/designations", { ...path, body: { designation: str(d, "designation"), skillCategoryId: str(d, "skillCategoryId") } }))
                 await qc.invalidateQueries({ queryKey: ["designations", companyId] })

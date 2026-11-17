@@ -59,6 +59,7 @@ export function CompaniesPage() {
           <FormDialog
             trigger={<><PlusIcon /> Add company</>}
             title="Add company"
+            description="A company is an employer you run payroll for. Its code can't change later."
             onSave={async (d) => {
               const c = await must(api.POST("/companies", { body: companyBody(d) }))
               await qc.invalidateQueries({ queryKey: ["companies"] })
@@ -110,6 +111,7 @@ function CompanyDialogs({ c, dialog, setDialog }: { c: Schemas["Company"]; dialo
         open={dialog === "edit"}
         onOpenChange={close}
         title="Edit company"
+        description="Update the company's details. The code can't change."
         onSave={async (d) => {
           await must(api.PATCH("/companies/{id}", { params: { path: { id: c.id } }, body: companyBody(d) }))
           await qc.invalidateQueries({ queryKey: ["companies"] })
@@ -230,6 +232,7 @@ export function CompanyPage() {
                 <FormDialog
                   trigger={<><PlusIcon /> Add client</>}
                   title="Add client"
+                  description="Add a client of this company and its first (default) site."
                   onSave={async (d) => {
                     await must(
                       api.POST("/companies/{id}/clients", {
@@ -340,6 +343,7 @@ export function ClientPage() {
         open={dialog === "edit"}
         onOpenChange={close}
         title="Edit client"
+        description="Update the client's name and address. The code can't change."
         onSave={async (d) => {
           await must(api.PATCH("/clients/{id}", { params: { path: { id: client.id } }, body: { name: str(d, "name"), address: optStr(d, "address") } }))
           await refresh()
@@ -391,6 +395,7 @@ export function ClientPage() {
                 <FormDialog
                   trigger={<><PlusIcon /> Add site</>}
                   title="Add site"
+                  description="Add a work location for this client. State, city and location form the site code."
                   onSave={async (d) => {
                     await must(
                       api.POST("/clients/{id}/sites", {
@@ -432,6 +437,7 @@ export function ClientPage() {
                 <FormDialog
                   trigger={<><PencilIcon /> Edit</>}
                   title={`Edit site ${s.siteCode}`}
+                  description="Update the site's details. State, city and location can't change: a move is a new site."
                   onSave={async (d) => {
                     await must(
                       api.PATCH("/sites/{id}", {
@@ -450,7 +456,6 @@ export function ClientPage() {
                     toast.success("Site saved")
                   }}
                 >
-                  <p className="text-sm text-muted-foreground">State, city and location can't change: a move is a new site.</p>
                   <SiteDetailFields site={s} />
                   <ActiveField active={s.active} hint="Inactive sites are kept, never deleted." />
                 </FormDialog>

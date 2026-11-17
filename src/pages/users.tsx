@@ -30,6 +30,7 @@ export function UsersPage() {
         <FormDialog
           trigger={<><MailPlusIcon /> Invite user</>}
           title="Invite user"
+          description="Send an email invite to join this workspace."
           submitLabel="Send invite"
           submitIcon={<SendIcon />}
           onSave={async (d) => {
