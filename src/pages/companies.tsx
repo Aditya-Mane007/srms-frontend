@@ -53,11 +53,9 @@ export function CompaniesPage() {
   const { select } = useSelection()
   return (
     <Page
-      bare
       crumbs={[{ label: "Companies" }]}
     >
       <DataTable
-        title={<h1 className="text-2xl font-semibold">Companies</h1>}
         toolbar={
           <FormDialog
             trigger={<><PlusIcon /> Add company</>}
