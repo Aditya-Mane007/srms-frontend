@@ -91,7 +91,7 @@ export function ConfirmDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+        <DialogHeader className="-mx-4 -mt-4 border-b p-4 pr-12">
           <DialogTitle>{title}</DialogTitle>
           <DialogDescription>{children}</DialogDescription>
         </DialogHeader>

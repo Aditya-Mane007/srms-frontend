@@ -84,7 +84,7 @@ export function EmployeeSeedDialog({ companyId, open, onOpenChange, onSaved }: {
   return (
     <Dialog open={open} onOpenChange={openChange}>
       <DialogContent className="sm:max-w-3xl">
-        <DialogHeader>
+        <DialogHeader className="-mx-4 -mt-4 border-b p-4 pr-12">
           <DialogTitle>Seed employees</DialogTitle>
           <DialogDescription>
             One-time onboarding of this company's existing employees from the seed .xlsx: header in row 1, <code>*</code> = required, dates DD-MM-YYYY, and CLIENT holds each row's client code. Employees already there are skipped; new locations become new sites.
