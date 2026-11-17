@@ -146,6 +146,10 @@
   * {
     @apply border-border outline-ring/50;
   }
+  /* Tailwind v4 dropped the pointer on buttons; give it back to everything clickable */
+  button:not(:disabled), [role="button"]:not([aria-disabled="true"]), [role="tab"], [role="menuitem"]:not([data-disabled]), [role="menuitemcheckbox"], [role="option"]:not([data-disabled]), [role="checkbox"], [role="combobox"], a[href], label[for], summary, select {
+    cursor: pointer;
+  }
   body {
     @apply bg-background text-foreground;
   }
