@@ -78,7 +78,7 @@ export function DataTable<T>({
   toolbar?: ReactNode
   /** small lists: no column picker, no pager (loads up to 100 rows), search sits beside Refresh */
   compact?: boolean
-  /** compact only: heading shown on the left of the toolbar */
+  /** heading on the left of the toolbar; search then moves to the right group */
   title?: ReactNode
 }) {
   const [sp, setSp] = useSearchParams()
@@ -127,7 +127,7 @@ export function DataTable<T>({
   const statusText = st ? status?.[st] : "All"
 
   const search = (
-    <div className={`relative ${compact ? "w-56" : "w-full max-w-xs"}`}>
+    <div className={`relative ${compact || title ? "w-56" : "w-full max-w-xs"}`}>
       <SearchIcon aria-hidden className="pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2 text-muted-foreground" />
       <Input
         type="search"
@@ -142,8 +142,9 @@ export function DataTable<T>({
   return (
     <div className={`flex flex-col gap-3 ${height === "fill" ? "min-h-0 flex-1" : ""}`}>
       <div className="flex flex-wrap items-center justify-between gap-2">
-        {compact ? <div className="flex items-center gap-2">{title}</div> : search}
+        {title ? <div className="flex items-center gap-2">{title}</div> : search}
         <div className={`flex items-center gap-2 ${compact ? "" : "flex-wrap"}`}>
+          {title && search}
           {status && (
             <DropdownMenu>
               <DropdownMenuTrigger render={<Button variant="outline" />}>
@@ -158,7 +159,6 @@ export function DataTable<T>({
               </DropdownMenuContent>
             </DropdownMenu>
           )}
-          {compact && search}
           {!compact && <DropdownMenu>
             <DropdownMenuTrigger render={<Button variant="outline" />}>
               <Columns3Icon /> Columns
