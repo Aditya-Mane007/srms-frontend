@@ -2,6 +2,7 @@ import { useState } from "react"
 import { DownloadIcon, SaveIcon, UploadIcon, XIcon } from "lucide-react"
 import { toast } from "sonner"
 import { api, errorMessage, type Schemas } from "@/api/client"
+import { FileUpload } from "@/components/file-upload"
 import { ErrorText } from "@/components/layout"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
@@ -92,20 +93,13 @@ export function EmployeeSeedDialog({ companyId, open, onOpenChange, onSaved }: {
         </DialogHeader>
     <div className="flex max-h-[60svh] flex-col gap-3 overflow-auto">
       {(state.step === "pick" || state.step === "rejected") && (
-        <label className="flex w-fit cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-sm focus-within:ring-3 focus-within:ring-ring/50">
-          <UploadIcon className="size-4" aria-hidden />
-          {state.step === "rejected" ? "Choose the fixed file" : "Choose seed file (.xlsx)"}
-          <input
-            type="file"
-            accept=".xlsx"
-            className="sr-only"
-            onChange={(e) => {
-              const f = e.target.files?.[0]
-              e.target.value = ""
-              if (f) void check(f)
-            }}
-          />
-        </label>
+        <FileUpload
+          accept=".xlsx"
+          label={state.step === "rejected" ? "Choose the fixed file" : "Choose seed file"}
+          hint="Excel .xlsx, up to 20 MB"
+          variant={state.step === "rejected" ? "button" : "dropzone"}
+          onFile={(f) => void check(f)}
+        />
       )}
       {(state.step === "checking" || state.step === "saving") && (
         <p role="status">{state.step === "checking" ? `Checking ${state.file.name}…` : "Saving…"}</p>
