@@ -3307,9 +3307,9 @@
         }
       }
     },
-    "/clients/{id}/employees/seed": {
+    "/companies/{id}/employees/seed": {
       "post": {
-        "summary": "Upload a client's employee seed file (.xlsx, create only); dryRun=true previews without saving",
+        "summary": "Upload a company's employee seed file (.xlsx, create only; CLIENT column per row); dryRun=true previews without saving",
         "security": [
           {
             "bearer": []

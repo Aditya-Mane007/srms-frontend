@@ -30,13 +30,13 @@ function downloadCsv(name: string, errors: RowError[]) {
  * Employee seed file for one client: pick → checked (dry run) → preview → Confirm saves.
  * Any row error rejects the whole file. The file stays in the browser between the two calls.
  */
-export function EmployeeSeedUpload({ clientId, onSaved }: { clientId: string; onSaved: () => void }) {
+export function EmployeeSeedUpload({ companyId, onSaved }: { companyId: string; onSaved: () => void }) {
   const [state, setState] = useState<State>({ step: "pick" })
   const [error, setError] = useState<string | null>(null)
 
   const send = async (file: File, dryRun: boolean) => {
-    const { data, error: err } = await api.POST("/clients/{id}/employees/seed", {
-      params: { path: { id: clientId }, query: dryRun ? { dryRun: "true" } : {} },
+    const { data, error: err } = await api.POST("/companies/{id}/employees/seed", {
+      params: { path: { id: companyId }, query: dryRun ? { dryRun: "true" } : {} },
       body: file as unknown as string,
       bodySerializer: (b) => b as unknown as BodyInit,
       headers: { "Content-Type": XLSX },
@@ -78,7 +78,7 @@ export function EmployeeSeedUpload({ clientId, onSaved }: { clientId: string; on
   return (
     <div className="flex flex-col gap-3 rounded-lg border p-4">
       <p className="text-sm text-muted-foreground">
-        One-time onboarding of this client's existing employees: the seed .xlsx (header in row 1, <code>*</code> = required, dates DD-MM-YYYY). Employees already there are skipped. New locations become new sites.
+        One-time onboarding of this company's existing employees: the seed .xlsx (header in row 1, <code>*</code> = required, dates DD-MM-YYYY; CLIENT holds each row's client code). Employees already there are skipped. New locations become new sites.
       </p>
       {(state.step === "pick" || state.step === "rejected") && (
         <label className="flex w-fit cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-sm focus-within:ring-3 focus-within:ring-ring/50">

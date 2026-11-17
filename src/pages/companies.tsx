@@ -8,7 +8,7 @@ import { useClients, useCompanies, useSelection } from "@/data"
 import { EmployeeSeedUpload } from "@/components/employee-seed"
 import { DataTable, StatusBadge } from "@/components/data-table"
 import { ConfirmDialog, FormDialog } from "@/components/form-dialog"
-import { PlaceFields, SelectField, SiteDetailFields, TextField } from "@/components/fields"
+import { PlaceFields, SiteDetailFields, TextField } from "@/components/fields"
 import { InfoPanel, ProfileHeader, profileGrid } from "@/components/profile"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { optStr, Page, str } from "@/components/layout"
@@ -99,34 +99,6 @@ export function CompaniesPage() {
   )
 }
 
-/** Company-level seeding: the file has no client column, so the client is picked here (one file per client). */
-function SeedEmployees({ companyId }: { companyId: string }) {
-  const qc = useQueryClient()
-  const { data: clients } = useClients(companyId)
-  const [clientId, setClientId] = useState<string>()
-  return (
-    <div className="flex flex-col gap-4">
-      <SelectField
-        id="seed-client"
-        name="clientId"
-        label="Client"
-        placeholder="Choose a client"
-        items={(clients ?? []).filter((c) => c.active).map((c) => ({ value: c.id, label: `${c.name} (${c.code})` }))}
-        value={clientId}
-        onValueChange={setClientId}
-        required
-      />
-      {clientId && (
-        <EmployeeSeedUpload
-          key={clientId}
-          clientId={clientId}
-          onSaved={() => qc.invalidateQueries({ queryKey: ["sites", clientId] })}
-        />
-      )}
-    </div>
-  )
-}
-
 type CompanyDialog = "edit" | "toggle" | "seed" | null
 
 /** Edit form and activate/deactivate confirm for one company, opened by `dialog`. */
@@ -169,7 +141,7 @@ function CompanyDialogs({ c, dialog, setDialog }: { c: Schemas["Company"]; dialo
           <DialogHeader>
             <DialogTitle>Seed employees</DialogTitle>
           </DialogHeader>
-          <SeedEmployees companyId={c.id} />
+          <EmployeeSeedUpload companyId={c.id} onSaved={() => qc.invalidateQueries({ queryKey: ["sites"] })} />
         </DialogContent>
       </Dialog>
     </>

@@ -1635,7 +1635,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/clients/{id}/employees/seed": {
+    "/companies/{id}/employees/seed": {
         parameters: {
             query?: never;
             header?: never;
@@ -1644,7 +1644,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Upload a client's employee seed file (.xlsx, create only); dryRun=true previews without saving */
+        /** Upload a company's employee seed file (.xlsx, create only; CLIENT column per row); dryRun=true previews without saving */
         post: {
             parameters: {
                 query?: {
