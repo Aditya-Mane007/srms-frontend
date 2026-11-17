@@ -97,7 +97,7 @@ export function EmployeeSeedDialog({ companyId, open, onOpenChange, onSaved }: {
           accept=".xlsx"
           label={state.step === "rejected" ? "Choose the fixed file" : "Choose seed file"}
           hint="Excel .xlsx, up to 20 MB"
-          variant={state.step === "rejected" ? "button" : "dropzone"}
+          size={state.step === "rejected" ? "input" : "dropzone"}
           onFile={(f) => void check(f)}
         />
       )}

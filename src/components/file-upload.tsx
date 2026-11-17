@@ -2,7 +2,7 @@ import { useState } from "react"
 import { UploadIcon } from "lucide-react"
 
 /**
- * File picker in two sizes: "button" where space is tight, "dropzone" (drag and drop or click) where there's room.
+ * File picker in two sizes: "input" where space is tight, "dropzone" (drag and drop or click) where there's room.
  * Calls `onFile` with the chosen file; the input is cleared so the same file can be picked again.
  */
 export function FileUpload({
@@ -10,14 +10,14 @@ export function FileUpload({
   label,
   hint,
   onFile,
-  variant = "dropzone",
+  size = "dropzone",
 }: {
   accept: string
   label: string
   /** dropzone only: small line under the label, e.g. "Excel .xlsx, up to 20 MB" */
   hint?: string
   onFile: (f: File) => void
-  variant?: "button" | "dropzone"
+  size?: "input" | "dropzone"
 }) {
   const [over, setOver] = useState(false)
   const input = (
@@ -32,7 +32,7 @@ export function FileUpload({
       }}
     />
   )
-  if (variant === "button")
+  if (size === "input")
     return (
       <label className="flex w-fit cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-sm focus-within:ring-3 focus-within:ring-ring/50">
         <UploadIcon className="size-4" aria-hidden />
