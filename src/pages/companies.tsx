@@ -5,12 +5,11 @@ import { Building2Icon, EyeIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, Power
 import { toast } from "sonner"
 import { api, must, type Schemas } from "@/api/client"
 import { useClients, useCompanies, useSelection } from "@/data"
-import { EmployeeSeedUpload } from "@/components/employee-seed"
+import { EmployeeSeedDialog } from "@/components/employee-seed"
 import { DataTable, StatusBadge } from "@/components/data-table"
 import { ConfirmDialog, FormDialog } from "@/components/form-dialog"
 import { PlaceFields, SiteDetailFields, TextField } from "@/components/fields"
 import { InfoPanel, ProfileHeader, profileGrid } from "@/components/profile"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { optStr, Page, str } from "@/components/layout"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -136,14 +135,7 @@ function CompanyDialogs({ c, dialog, setDialog }: { c: Schemas["Company"]; dialo
           ? "It moves to the Inactive list. Its clients, sites and history are kept, and you can activate it again."
           : "It moves back to the Active list."}
       </ConfirmDialog>
-      <Dialog open={dialog === "seed"} onOpenChange={close}>
-        <DialogContent className="sm:max-w-3xl">
-          <DialogHeader>
-            <DialogTitle>Seed employees</DialogTitle>
-          </DialogHeader>
-          <EmployeeSeedUpload companyId={c.id} onSaved={() => qc.invalidateQueries({ queryKey: ["sites"] })} />
-        </DialogContent>
-      </Dialog>
+      <EmployeeSeedDialog companyId={c.id} open={dialog === "seed"} onOpenChange={close} onSaved={() => qc.invalidateQueries({ queryKey: ["sites"] })} />
     </>
   )
 }

@@ -1,9 +1,10 @@
 import { useState } from "react"
-import { DownloadIcon, SaveIcon, UploadIcon } from "lucide-react"
+import { DownloadIcon, SaveIcon, UploadIcon, XIcon } from "lucide-react"
 import { toast } from "sonner"
 import { api, errorMessage, type Schemas } from "@/api/client"
 import { ErrorText } from "@/components/layout"
 import { Button } from "@/components/ui/button"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 const XLSX = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -27,10 +28,10 @@ function downloadCsv(name: string, errors: RowError[]) {
 }
 
 /**
- * Employee seed file for one client: pick → checked (dry run) → preview → Confirm saves.
+ * Company employee seed dialog: pick → checked (dry run) → preview → Save.
  * Any row error rejects the whole file. The file stays in the browser between the two calls.
  */
-export function EmployeeSeedUpload({ companyId, onSaved }: { companyId: string; onSaved: () => void }) {
+export function EmployeeSeedDialog({ companyId, open, onOpenChange, onSaved }: { companyId: string; open: boolean; onOpenChange: (o: boolean) => void; onSaved: () => void }) {
   const [state, setState] = useState<State>({ step: "pick" })
   const [error, setError] = useState<string | null>(null)
 
@@ -69,17 +70,27 @@ export function EmployeeSeedUpload({ companyId, onSaved }: { companyId: string; 
       toast.success(`${r.created} employees added${r.skipped.length ? `, ${r.skipped.length} already there` : ""}`)
       setState({ step: "pick" })
       onSaved()
+      onOpenChange(false)
     } catch (e) {
       setError((e as Error).message)
       setState({ step: "pick" })
     }
   }
 
+  const openChange = (o: boolean) => {
+    if (!o) (setState({ step: "pick" }), setError(null))
+    onOpenChange(o)
+  }
   return (
-    <div className="flex flex-col gap-3 rounded-lg border p-4">
-      <p className="text-sm text-muted-foreground">
-        One-time onboarding of this company's existing employees: the seed .xlsx (header in row 1, <code>*</code> = required, dates DD-MM-YYYY; CLIENT holds each row's client code). Employees already there are skipped. New locations become new sites.
-      </p>
+    <Dialog open={open} onOpenChange={openChange}>
+      <DialogContent className="sm:max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Seed employees</DialogTitle>
+          <DialogDescription>
+            One-time onboarding of this company's existing employees from the seed .xlsx: header in row 1, <code>*</code> = required, dates DD-MM-YYYY, and CLIENT holds each row's client code. Employees already there are skipped; new locations become new sites.
+          </DialogDescription>
+        </DialogHeader>
+    <div className="flex max-h-[60svh] flex-col gap-3 overflow-auto">
       {(state.step === "pick" || state.step === "rejected") && (
         <label className="flex w-fit cursor-pointer items-center gap-2 rounded-lg border px-3 py-1.5 text-sm focus-within:ring-3 focus-within:ring-ring/50">
           <UploadIcon className="size-4" aria-hidden />
@@ -112,10 +123,9 @@ export function EmployeeSeedUpload({ companyId, onSaved }: { companyId: string; 
               New sites: <span className="font-mono">{state.result.newSites.join(", ")}</span>
             </p>
           )}
-          <div className="flex gap-2">
-            <Button onClick={() => save(state.file)} disabled={state.result.created === 0}><SaveIcon aria-hidden /> Confirm and save</Button>
-            <Button variant="outline" onClick={() => setState({ step: "pick" })}>Cancel</Button>
-          </div>
+          <Button variant="outline" className="w-fit" onClick={() => setState({ step: "pick" })}>
+            <UploadIcon aria-hidden /> Choose another file
+          </Button>
         </div>
       )}
 
@@ -141,5 +151,15 @@ export function EmployeeSeedUpload({ companyId, onSaved }: { companyId: string; 
         </div>
       )}
     </div>
+        <DialogFooter>
+          <DialogClose render={<Button variant="outline" />}>
+            <XIcon aria-hidden /> Cancel
+          </DialogClose>
+          <Button onClick={() => state.step === "preview" && save(state.file)} disabled={state.step !== "preview" || state.result.created === 0}>
+            <SaveIcon aria-hidden /> {state.step === "saving" ? "Saving…" : "Save"}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   )
 }
