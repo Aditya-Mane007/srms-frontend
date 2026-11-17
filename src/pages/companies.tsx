@@ -1,14 +1,16 @@
 import { useState } from "react"
 import { Link, useNavigate, useParams, useSearchParams } from "react-router"
 import { useQueryClient } from "@tanstack/react-query"
-import { Building2Icon, EyeIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, PowerIcon, Settings2Icon, UsersIcon } from "lucide-react"
+import { Building2Icon, EyeIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, PowerIcon, Settings2Icon, UploadIcon, UsersIcon, BriefcaseIcon, MapPinIcon } from "lucide-react"
 import { toast } from "sonner"
 import { api, must, type Schemas } from "@/api/client"
 import { useClients, useCompanies, useSelection } from "@/data"
 import { EmployeeSeedUpload } from "@/components/employee-seed"
 import { DataTable, StatusBadge } from "@/components/data-table"
 import { ConfirmDialog, FormDialog } from "@/components/form-dialog"
-import { PlaceFields, SiteDetailFields, TextField } from "@/components/fields"
+import { PlaceFields, SelectField, SiteDetailFields, TextField } from "@/components/fields"
+import { InfoPanel, ProfileHeader, profileGrid } from "@/components/profile"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { optStr, Page, str } from "@/components/layout"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -97,7 +99,35 @@ export function CompaniesPage() {
   )
 }
 
-type CompanyDialog = "edit" | "toggle" | null
+/** Company-level seeding: the file has no client column, so the client is picked here (one file per client). */
+function SeedEmployees({ companyId }: { companyId: string }) {
+  const qc = useQueryClient()
+  const { data: clients } = useClients(companyId)
+  const [clientId, setClientId] = useState<string>()
+  return (
+    <div className="flex flex-col gap-4">
+      <SelectField
+        id="seed-client"
+        name="clientId"
+        label="Client"
+        placeholder="Choose a client"
+        items={(clients ?? []).filter((c) => c.active).map((c) => ({ value: c.id, label: `${c.name} (${c.code})` }))}
+        value={clientId}
+        onValueChange={setClientId}
+        required
+      />
+      {clientId && (
+        <EmployeeSeedUpload
+          key={clientId}
+          clientId={clientId}
+          onSaved={() => qc.invalidateQueries({ queryKey: ["sites", clientId] })}
+        />
+      )}
+    </div>
+  )
+}
+
+type CompanyDialog = "edit" | "toggle" | "seed" | null
 
 /** Edit form and activate/deactivate confirm for one company, opened by `dialog`. */
 function CompanyDialogs({ c, dialog, setDialog }: { c: Schemas["Company"]; dialog: CompanyDialog; setDialog: (d: CompanyDialog) => void }) {
@@ -134,6 +164,14 @@ function CompanyDialogs({ c, dialog, setDialog }: { c: Schemas["Company"]; dialo
           ? "It moves to the Inactive list. Its clients, sites and history are kept, and you can activate it again."
           : "It moves back to the Active list."}
       </ConfirmDialog>
+      <Dialog open={dialog === "seed"} onOpenChange={close}>
+        <DialogContent className="sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle>Seed employees</DialogTitle>
+          </DialogHeader>
+          <SeedEmployees companyId={c.id} />
+        </DialogContent>
+      </Dialog>
     </>
   )
 }
@@ -179,50 +217,34 @@ export function CompanyPage() {
 
   return (
     <Page bare crumbs={[{ label: "Companies", to: "/companies" }, { label: company.name }]}>
-      <header className="shrink-0 overflow-hidden rounded-xl border">
-        <div aria-hidden className="h-14 bg-linear-to-r from-primary via-primary/60 to-secondary" />
-        <div className="flex flex-wrap items-center justify-between gap-4 px-4 pb-3">
-          <div className="flex items-center gap-4">
-            <div className="-mt-8 grid size-16 shrink-0 place-items-center rounded-2xl border-4 border-background bg-linear-to-br from-primary to-primary/70 text-primary-foreground shadow-md">
-              <Building2Icon aria-hidden className="size-7" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-semibold">
-                {company.name} <span className="text-muted-foreground">·</span> <span className="font-mono text-muted-foreground">{company.code}</span>
-              </h1>
-            </div>
-          </div>
-          <div className="-mt-4 flex flex-wrap gap-2 self-start">
+      <ProfileHeader
+        icon={<Building2Icon aria-hidden />}
+        name={company.name}
+        code={company.code}
+        actions={
+          <>
             <Button className="shadow-sm" onClick={() => setDialog("edit")}>
               <PencilIcon /> Edit
+            </Button>
+            <Button className="shadow-sm" onClick={() => setDialog("seed")}>
+              <UploadIcon /> Seed employees
             </Button>
             <Button className={company.active ? "bg-destructive text-white shadow-sm hover:bg-destructive/90" : "shadow-sm"} onClick={() => setDialog("toggle")}>
               <PowerIcon /> {company.active ? "Deactivate" : "Activate"}
             </Button>
-          </div>
-        </div>
-      </header>
+          </>
+        }
+      />
       <CompanyDialogs c={company} dialog={dialog} setDialog={setDialog} />
 
-      {/* banner stays; on large screens the panels fill the rest and only their insides scroll */}
-      <div className="grid gap-6 lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(260px,320px)_minmax(0,1fr)]">
-        <section aria-labelledby="info-h" className="flex flex-col rounded-xl border bg-muted/30 p-4 lg:min-h-0">
-          <h2 id="info-h" className="mb-3 font-semibold">Information</h2>
-          <dl className="flex min-h-0 flex-1 flex-col gap-3 overflow-auto text-sm">
-            {(
-              [
-                ["Address", company.address],
-                ["Sub-contractor", company.subContractorName],
-                ["Sub-contractor address", company.subContractorAddress],
-              ] as const
-            ).map(([k, v]) => (
-              <div key={k} className="flex flex-col gap-0.5">
-                <dt className="text-xs text-muted-foreground">{k}</dt>
-                <dd className="break-words">{v || "—"}</dd>
-              </div>
-            ))}
-          </dl>
-        </section>
+      <div className={profileGrid}>
+        <InfoPanel
+          items={[
+            ["Address", company.address],
+            ["Sub-contractor", company.subContractorName],
+            ["Sub-contractor address", company.subContractorAddress],
+          ]}
+        />
 
         <Tabs
           value={tab}
@@ -321,6 +343,8 @@ function ClientCreateFields() {
 export function ClientPage() {
   const { companyId = "", clientId = "" } = useParams()
   const qc = useQueryClient()
+  const [sp, setSp] = useSearchParams()
+  const [dialog, setDialog] = useState<"edit" | "toggle" | null>(null)
   const { data: companies } = useCompanies()
   const { data: clients } = useClients(companyId)
   const company = companies?.find((c) => c.id === companyId)
@@ -328,112 +352,149 @@ export function ClientPage() {
   const base = [{ label: "Companies", to: "/companies" }, { label: company?.name ?? "…", to: `/companies/${companyId}` }]
   if (!client) return <Page crumbs={[...base, { label: clients ? "Not found" : "Loading…" }]}>{null}</Page>
   const refresh = () => Promise.all([qc.invalidateQueries({ queryKey: ["clients", companyId] }), qc.invalidateQueries({ queryKey: ["sites", clientId] })])
+  const tab = sp.get("tab") === "sites" ? "sites" : "employees"
+  const close = (o: boolean) => !o && setDialog(null)
 
   return (
-    <Page
-      crumbs={[...base, { label: client.name }]}
-      actions={
-        <FormDialog
-          trigger={<><PencilIcon /> Edit client</>}
-          title="Edit client"
-          onSave={async (d) => {
-            await must(
-              api.PATCH("/clients/{id}", {
-                params: { path: { id: client.id } },
-                body: { name: str(d, "name"), address: optStr(d, "address"), active: d.get("active") === "on" },
-              }),
-            )
-            await refresh()
-            toast.success("Client saved")
-          }}
+    <Page bare crumbs={[...base, { label: client.name }]}>
+      <ProfileHeader
+        icon={<BriefcaseIcon aria-hidden />}
+        name={client.name}
+        code={client.code}
+        actions={
+          <>
+            <Button className="shadow-sm" onClick={() => setDialog("edit")}>
+              <PencilIcon /> Edit
+            </Button>
+            <Button className={client.active ? "bg-destructive text-white shadow-sm hover:bg-destructive/90" : "shadow-sm"} onClick={() => setDialog("toggle")}>
+              <PowerIcon /> {client.active ? "Deactivate" : "Activate"}
+            </Button>
+          </>
+        }
+      />
+      <FormDialog
+        open={dialog === "edit"}
+        onOpenChange={close}
+        title="Edit client"
+        onSave={async (d) => {
+          await must(api.PATCH("/clients/{id}", { params: { path: { id: client.id } }, body: { name: str(d, "name"), address: optStr(d, "address") } }))
+          await refresh()
+          toast.success("Client saved")
+        }}
+      >
+        <TextField name="name" label="Name" required defaultValue={client.name} maxLength={500} />
+        <TextField name="address" label="Address" multiline defaultValue={client.address ?? ""} />
+      </FormDialog>
+      <ConfirmDialog
+        open={dialog === "toggle"}
+        onOpenChange={close}
+        title={`${client.active ? "Deactivate" : "Activate"} ${client.name}?`}
+        confirmLabel={client.active ? "Deactivate" : "Activate"}
+        destructive={client.active}
+        icon={<PowerIcon />}
+        onConfirm={async () => {
+          await must(api.PATCH("/clients/{id}", { params: { path: { id: client.id } }, body: { active: !client.active } }))
+          await refresh()
+          toast.success(`${client.name} ${client.active ? "deactivated" : "activated"}`)
+        }}
+      >
+        {client.active ? "It moves to the Inactive list. Its sites and history are kept, and you can activate it again." : "It moves back to the Active list."}
+      </ConfirmDialog>
+
+      <div className={profileGrid}>
+        <InfoPanel items={[["Address", client.address]]} />
+
+        <Tabs
+          value={tab}
+          onValueChange={(v) => setSp((p) => (v === "employees" ? p.delete("tab") : p.set("tab", String(v)), p), { replace: true })}
+          className="flex min-w-0 flex-col gap-3 lg:min-h-0"
         >
-          <TextField name="name" label="Name" required defaultValue={client.name} maxLength={500} />
-          <TextField name="address" label="Address" multiline defaultValue={client.address ?? ""} />
-          <ActiveField active={client.active} />
-        </FormDialog>
-      }
-    >
-      <p className="text-sm text-muted-foreground">
-        Code <span className="font-mono">{client.code}</span> · {client.address || "No address"}
-      </p>
-      <section className="flex flex-col gap-3" aria-labelledby="emp-h">
-        <h2 id="emp-h" className="text-lg font-semibold">Employees</h2>
-        <EmployeeSeedUpload clientId={client.id} onSaved={refresh} />
-      </section>
-      <section className="flex flex-col gap-3" aria-labelledby="sites-h">
-        <div className="flex items-center justify-between">
-          <h2 id="sites-h" className="text-lg font-semibold">Sites</h2>
-        </div>
-        <DataTable
-          toolbar={
-            <FormDialog
-              trigger={<><PlusIcon /> Add site</>}
-              title="Add site"
-              onSave={async (d) => {
-                await must(
-                  api.POST("/clients/{id}/sites", {
-                    params: { path: { id: client.id } },
-                    body: {
-                      stateId: str(d, "stateId"),
-                      cityId: str(d, "cityId"),
-                      location: str(d, "location"),
-                      name: str(d, "name") || str(d, "location"),
-                      address: optStr(d, "address"),
-                      natureOfWork: optStr(d, "natureOfWork"),
-                      workingHours: optStr(d, "workingHours"),
-                      restInterval: optStr(d, "restInterval"),
-                    },
-                  }),
-                )
-                await refresh()
-                toast.success("Site added")
-              }}
-            >
-              <PlaceFields clientCode={client.code} />
-              <SiteDetailFields />
-            </FormDialog>
-          }
-          id="sites"
-          queryKey={["sites", client.id]}
-          fetch={(query) => api.GET("/clients/{id}/sites", { params: { path: { id: client.id }, query } })}
-          rowKey={(s) => s.id}
-          searchLabel="Search sites"
-          status={{ active: "Active", inactive: "Inactive" }}
-          empty="No sites yet."
-          columns={[
-            { key: "siteCode", label: "Site code", className: "font-mono", cell: (s) => s.siteCode },
-            { key: "name", label: "Name", cell: (s) => <>{s.name} {s.isDefault && <Badge variant="outline">Default</Badge>}</> },
-            { key: "status", label: "Status", cell: (s) => status(s.active) },
-          ]}
-          actions={(s) => (
-            <FormDialog
-              trigger={<><PencilIcon /> Edit</>}
-              title={`Edit site ${s.siteCode}`}
-              onSave={async (d) => {
-                await must(
-                  api.PATCH("/sites/{id}", {
-                    params: { path: { id: s.id } },
-                    body: {
-                      name: str(d, "name") || s.name,
-                      address: optStr(d, "address"),
-                      natureOfWork: optStr(d, "natureOfWork"),
-                      workingHours: optStr(d, "workingHours"),
-                      restInterval: optStr(d, "restInterval"),
-                      active: d.get("active") === "on",
-                    },
-                  }),
-                )
-                await refresh()
-                toast.success("Site saved")
-              }}
-            >
-              <p className="text-sm text-muted-foreground">State, city and location can't change: a move is a new site.</p>
-              <SiteDetailFields site={s} />
-              <ActiveField active={s.active} hint="Inactive sites are kept, never deleted." />
-            </FormDialog>
-          )}
-        />
-      </section>
+          <TabsList variant="line">
+            <TabsTrigger value="employees" className="flex-none">
+              <UsersIcon aria-hidden /> Employees
+            </TabsTrigger>
+            <TabsTrigger value="sites" className="flex-none">
+              <MapPinIcon aria-hidden /> Sites
+            </TabsTrigger>
+          </TabsList>
+          {/* shortcut: placeholder until GET /companies/:id/employees exists */}
+          <TabsContent value="employees" className="rounded-xl border bg-card p-4 text-sm text-muted-foreground">
+            Employee list coming soon. To onboard existing employees, use Seed employees on the company page.
+          </TabsContent>
+          <TabsContent value="sites" className="flex h-[70svh] flex-col rounded-xl border bg-card p-4 lg:h-auto lg:min-h-0 lg:flex-1">
+            <DataTable
+              toolbar={
+                <FormDialog
+                  trigger={<><PlusIcon /> Add site</>}
+                  title="Add site"
+                  onSave={async (d) => {
+                    await must(
+                      api.POST("/clients/{id}/sites", {
+                        params: { path: { id: client.id } },
+                        body: {
+                          stateId: str(d, "stateId"),
+                          cityId: str(d, "cityId"),
+                          location: str(d, "location"),
+                          name: str(d, "name") || str(d, "location"),
+                          address: optStr(d, "address"),
+                          natureOfWork: optStr(d, "natureOfWork"),
+                          workingHours: optStr(d, "workingHours"),
+                          restInterval: optStr(d, "restInterval"),
+                        },
+                      }),
+                    )
+                    await refresh()
+                    toast.success("Site added")
+                  }}
+                >
+                  <PlaceFields clientCode={client.code} />
+                  <SiteDetailFields />
+                </FormDialog>
+              }
+              id="sites"
+              height="fill"
+              queryKey={["sites", client.id]}
+              fetch={(query) => api.GET("/clients/{id}/sites", { params: { path: { id: client.id }, query } })}
+              rowKey={(s) => s.id}
+              searchLabel="Search sites"
+              status={{ active: "Active", inactive: "Inactive" }}
+              empty="No sites yet."
+              columns={[
+                { key: "siteCode", label: "Site code", className: "font-mono", cell: (s) => s.siteCode },
+                { key: "name", label: "Name", cell: (s) => <>{s.name} {s.isDefault && <Badge variant="outline">Default</Badge>}</> },
+                { key: "status", label: "Status", cell: (s) => status(s.active) },
+              ]}
+              actions={(s) => (
+                <FormDialog
+                  trigger={<><PencilIcon /> Edit</>}
+                  title={`Edit site ${s.siteCode}`}
+                  onSave={async (d) => {
+                    await must(
+                      api.PATCH("/sites/{id}", {
+                        params: { path: { id: s.id } },
+                        body: {
+                          name: str(d, "name") || s.name,
+                          address: optStr(d, "address"),
+                          natureOfWork: optStr(d, "natureOfWork"),
+                          workingHours: optStr(d, "workingHours"),
+                          restInterval: optStr(d, "restInterval"),
+                          active: d.get("active") === "on",
+                        },
+                      }),
+                    )
+                    await refresh()
+                    toast.success("Site saved")
+                  }}
+                >
+                  <p className="text-sm text-muted-foreground">State, city and location can't change: a move is a new site.</p>
+                  <SiteDetailFields site={s} />
+                  <ActiveField active={s.active} hint="Inactive sites are kept, never deleted." />
+                </FormDialog>
+              )}
+            />
+          </TabsContent>
+        </Tabs>
+      </div>
     </Page>
   )
 }
