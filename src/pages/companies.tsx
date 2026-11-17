@@ -54,9 +54,7 @@ export function CompaniesPage() {
   return (
     <Page
       crumbs={[{ label: "Companies" }]}
-    >
-      <DataTable
-        toolbar={
+      actions={
           <FormDialog
             trigger={<><PlusIcon /> Add company</>}
             title="Add company"
@@ -69,7 +67,9 @@ export function CompaniesPage() {
           >
             <CompanyFields />
           </FormDialog>
-        }
+      }
+    >
+      <DataTable
         id="companies"
         height="fill"
         queryKey={["companies"]}
