@@ -1,14 +1,17 @@
 import { useState } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { LockIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import { ChevronRightIcon, LockIcon, SearchIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 import { api, must, type Schemas } from "@/api/client"
 import { useCan, usePermissions } from "@/access"
-import { CheckboxListField, TextField } from "@/components/fields"
+import { TextField } from "@/components/fields"
 import { ConfirmDialog, FormDialog } from "@/components/form-dialog"
 import { Page, str } from "@/components/layout"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 type Role = Schemas["Role"]
@@ -26,25 +29,88 @@ export function useGrantable() {
     !!me && r.system !== "SUPER_ADMIN" && (r.system !== "ADMIN" || me.isSuperAdmin) && r.permissions.every((p) => me.permissions.includes(p))
 }
 
-/** Permission checkboxes grouped by module; ones the editor doesn't hold are disabled. */
+// Access level per action, IAM style. Unknown actions fall back to Write.
+const LEVEL: Record<string, "Read" | "Write" | "Admin"> = {
+  read: "Read", download: "Read",
+  read_all: "Admin", view_sensitive: "Admin", all: "Admin", assign: "Admin", unlock: "Admin", manage: "Admin",
+}
+const LEVELS = ["Read", "Write", "Admin"] as const
+const title = (s: string) => s[0]!.toUpperCase() + s.slice(1).replace("_", " ")
+
+/** Role name plus an IAM-style picker: one row per module with an "all" box and a status, expand to tick actions by access level. */
 function PermissionFields({ role }: { role?: Role }) {
   const { data: catalog = [] } = usePermissionCatalog()
   const { data: me } = usePermissions()
-  const modules = [...new Set(catalog.map((p) => p.split(":")[0]!))]
+  const [sel, setSel] = useState(() => new Set(role?.permissions ?? []))
+  const [q, setQ] = useState("")
+  const held = (p: string) => !!me?.permissions.includes(p)
+  const set = (ps: string[], on: boolean) =>
+    setSel((s) => {
+      const n = new Set(s)
+      for (const p of ps) if (held(p)) on ? n.add(p) : n.delete(p)
+      return n
+    })
+  const shown = catalog.filter((p) => p.replace("_", " ").includes(q.toLowerCase()))
+  const modules = [...new Set(shown.map((p) => p.split(":")[0]!))]
   return (
     <>
       <TextField name="name" label="Role name" required maxLength={100} defaultValue={role?.name} />
-      {modules.map((m) => (
-        <CheckboxListField
-          key={m}
-          name="permissions"
-          label={m[0]!.toUpperCase() + m.slice(1)}
-          defaultValues={role?.permissions}
-          items={catalog
-            .filter((p) => p.startsWith(`${m}:`))
-            .map((p) => ({ value: p, label: p.split(":")[1]!.replace("_", " "), disabled: !me?.permissions.includes(p) }))}
-        />
-      ))}
+      {[...sel].map((p) => <input key={p} type="hidden" name="permissions" value={p} />)}
+      <fieldset className="flex flex-col gap-2">
+        <legend className="mb-1 text-sm font-medium">Permissions</legend>
+        <div className="flex items-center gap-3">
+          <div className="relative flex-1">
+            <SearchIcon className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-muted-foreground" aria-hidden />
+            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter permissions" aria-label="Filter permissions" className="pl-8" />
+          </div>
+          <span className="shrink-0 text-sm text-muted-foreground">{sel.size} of {catalog.length} selected</span>
+        </div>
+        <div className="divide-y rounded-lg border">
+          {modules.length === 0 && <p className="p-3 text-sm text-muted-foreground">No permissions match.</p>}
+          {modules.map((m) => {
+            const all = catalog.filter((p) => p.startsWith(`${m}:`))
+            const on = all.filter((p) => sel.has(p))
+            const status = on.length === all.length ? "Full access" : on.length ? `Limited: ${on.map((p) => p.split(":")[1]!.replace("_", " ")).join(", ")}` : "No access"
+            return (
+              <Collapsible key={m} defaultOpen={!!q}>
+                <div className="flex items-center gap-3 px-3 py-2">
+                  <CollapsibleTrigger className="group flex items-center gap-1 text-sm font-medium" aria-label={`Show ${m} actions`}>
+                    <ChevronRightIcon className="size-4 transition-transform group-data-[panel-open]:rotate-90" aria-hidden />
+                  </CollapsibleTrigger>
+                  <Checkbox
+                    aria-label={`All ${m} permissions`}
+                    checked={on.length === all.length}
+                    indeterminate={on.length > 0 && on.length < all.length}
+                    disabled={!all.some(held)}
+                    onCheckedChange={(c) => set(all, c)}
+                  />
+                  <span className="flex-1 text-sm font-medium">{title(m)}</span>
+                  <Badge variant={on.length === all.length ? "default" : "secondary"} className={on.length ? "" : "text-muted-foreground"}>{status}</Badge>
+                </div>
+                <CollapsibleContent>
+                  <div className="grid gap-3 px-3 pb-3 pl-14 sm:grid-cols-3">
+                    {LEVELS.map((lv) => {
+                      const ps = shown.filter((p) => p.startsWith(`${m}:`) && (LEVEL[p.split(":")[1]!] ?? "Write") === lv)
+                      if (!ps.length) return null
+                      return (
+                        <div key={lv} className="flex flex-col gap-1.5">
+                          <span className="text-xs text-muted-foreground">{lv} ({ps.filter((p) => sel.has(p)).length}/{ps.length})</span>
+                          {ps.map((p) => (
+                            <label key={p} className="flex items-center gap-2 text-sm has-disabled:opacity-60" title={held(p) ? undefined : "You don't hold this permission, so you can't change it"}>
+                              <Checkbox checked={sel.has(p)} disabled={!held(p)} onCheckedChange={(c) => set([p], c)} />
+                              {p.split(":")[1]!.replace("_", " ")}
+                            </label>
+                          ))}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            )
+          })}
+        </div>
+      </fieldset>
     </>
   )
 }
