@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react"
 import { useQueryClient } from "@tanstack/react-query"
-import { api, must, refresh, setAccessToken, setOnSignedOut, type Schemas } from "@/api/client"
+import { api, must, refresh, setAccessToken, setOnAccessChanged, setOnSignedOut, type Schemas } from "@/api/client"
 
 type Auth =
   | { status: "loading" }
@@ -30,9 +30,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     setOnSignedOut(signOut)
+    // PERMISSIONS_STALE is a 401: the shared refresh runs, then this refetches permissions
+    setOnAccessChanged(() => void qc.invalidateQueries({ queryKey: ["me", "permissions"] }))
     // restore the session from the httpOnly refresh cookie
     refresh().then((ok) => (ok ? loadMe().catch(signOut) : signOut()))
-  }, [loadMe, signOut])
+  }, [loadMe, signOut, qc])
 
   const login = useCallback(
     async (email: string, password: string) => {

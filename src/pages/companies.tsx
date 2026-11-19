@@ -1,3 +1,4 @@
+import { useCan } from "@/access"
 import { useState } from "react"
 import { Link, useNavigate, useParams, useSearchParams } from "react-router"
 import { useQueryClient } from "@tanstack/react-query"
@@ -57,6 +58,7 @@ export function CompaniesPage() {
       crumbs={[{ label: "Companies" }]}
       actions={
           <FormDialog
+            need={["companies:create"]}
             trigger={<><PlusIcon /> Add company</>}
             title="Add company"
             description="A company is an employer you run payroll for. Its code can't change later."
@@ -147,6 +149,7 @@ function CompanyActions({ c }: { c: Schemas["Company"] }) {
   const navigate = useNavigate()
   const { select } = useSelection()
   const [dialog, setDialog] = useState<CompanyDialog>(null)
+  const can = useCan()
   return (
     <>
       <DropdownMenu>
@@ -157,12 +160,16 @@ function CompanyActions({ c }: { c: Schemas["Company"] }) {
           <DropdownMenuItem onClick={() => (select({ companyId: c.id }), navigate(`/companies/${c.id}`))}>
             <EyeIcon aria-hidden /> View details
           </DropdownMenuItem>
-          <DropdownMenuItem onClick={() => setDialog("edit")}>
-            <PencilIcon aria-hidden /> Edit details
-          </DropdownMenuItem>
-          <DropdownMenuItem variant={c.active ? "destructive" : "default"} onClick={() => setDialog("toggle")}>
-            <PowerIcon aria-hidden /> {c.active ? "Deactivate" : "Activate"}
-          </DropdownMenuItem>
+          {can("companies:update") && (
+            <>
+              <DropdownMenuItem onClick={() => setDialog("edit")}>
+                <PencilIcon aria-hidden /> Edit details
+              </DropdownMenuItem>
+              <DropdownMenuItem variant={c.active ? "destructive" : "default"} onClick={() => setDialog("toggle")}>
+                <PowerIcon aria-hidden /> {c.active ? "Deactivate" : "Activate"}
+              </DropdownMenuItem>
+            </>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
       <CompanyDialogs c={c} dialog={dialog} setDialog={setDialog} />
@@ -176,6 +183,7 @@ export function CompanyPage() {
   const qc = useQueryClient()
   const [sp, setSp] = useSearchParams()
   const [dialog, setDialog] = useState<CompanyDialog>(null)
+  const can = useCan()
   const { data: companies } = useCompanies()
   const company = companies?.find((c) => c.id === companyId)
   if (!company) return <Page crumbs={[{ label: "Companies", to: "/companies" }, { label: companies ? "Not found" : "Loading…" }]}>{null}</Page>
@@ -189,15 +197,19 @@ export function CompanyPage() {
         code={company.code}
         actions={
           <>
-            <Button className="shadow-sm" onClick={() => setDialog("edit")}>
-              <PencilIcon /> Edit
-            </Button>
-            <Button className="shadow-sm" onClick={() => setDialog("seed")}>
-              <UploadIcon /> Seed employees
-            </Button>
-            <Button className={company.active ? "bg-destructive text-white shadow-sm hover:bg-destructive/90" : "shadow-sm"} onClick={() => setDialog("toggle")}>
+            {can("companies:update") && (
+              <Button className="shadow-sm" onClick={() => setDialog("edit")}>
+                <PencilIcon /> Edit
+              </Button>
+            )}
+            {can("employees:write") && (
+              <Button className="shadow-sm" onClick={() => setDialog("seed")}>
+                <UploadIcon /> Seed employees
+              </Button>
+            )}
+            {can("companies:update") && <Button className={company.active ? "bg-destructive text-white shadow-sm hover:bg-destructive/90" : "shadow-sm"} onClick={() => setDialog("toggle")}>
               <PowerIcon /> {company.active ? "Deactivate" : "Activate"}
-            </Button>
+            </Button>}
           </>
         }
       />
@@ -230,6 +242,7 @@ export function CompanyPage() {
             <DataTable
               toolbar={
                 <FormDialog
+                  need={["clients:write"]}
                   trigger={<><PlusIcon /> Add client</>}
                   title="Add client"
                   description="Add a client of this company and its first (default) site."
@@ -312,6 +325,7 @@ export function ClientPage() {
   const qc = useQueryClient()
   const [sp, setSp] = useSearchParams()
   const [dialog, setDialog] = useState<"edit" | "toggle" | null>(null)
+  const can = useCan()
   const { data: companies } = useCompanies()
   const { data: clients } = useClients(companyId)
   const company = companies?.find((c) => c.id === companyId)
@@ -330,12 +344,14 @@ export function ClientPage() {
         code={client.code}
         actions={
           <>
-            <Button className="shadow-sm" onClick={() => setDialog("edit")}>
-              <PencilIcon /> Edit
-            </Button>
-            <Button className={client.active ? "bg-destructive text-white shadow-sm hover:bg-destructive/90" : "shadow-sm"} onClick={() => setDialog("toggle")}>
+            {can("clients:write") && (
+              <Button className="shadow-sm" onClick={() => setDialog("edit")}>
+                <PencilIcon /> Edit
+              </Button>
+            )}
+            {can("clients:write") && <Button className={client.active ? "bg-destructive text-white shadow-sm hover:bg-destructive/90" : "shadow-sm"} onClick={() => setDialog("toggle")}>
               <PowerIcon /> {client.active ? "Deactivate" : "Activate"}
-            </Button>
+            </Button>}
           </>
         }
       />
@@ -393,6 +409,7 @@ export function ClientPage() {
             <DataTable
               toolbar={
                 <FormDialog
+                  need={["sites:write"]}
                   trigger={<><PlusIcon /> Add site</>}
                   title="Add site"
                   description="Add a work location for this client. State, city and location form the site code."
@@ -435,6 +452,7 @@ export function ClientPage() {
               ]}
               actions={(s) => (
                 <FormDialog
+                  need={["sites:write"]}
                   trigger={<><PencilIcon /> Edit</>}
                   title={`Edit site ${s.siteCode}`}
                   description="Update the site's details. State, city and location can't change: a move is a new site."

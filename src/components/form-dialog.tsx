@@ -1,5 +1,6 @@
 import { SaveIcon, XIcon } from "lucide-react"
 import { useState, type ReactNode } from "react"
+import { useCan } from "@/access"
 import { ErrorText, useSubmit } from "@/components/layout"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
@@ -16,7 +17,10 @@ export function FormDialog({
   children,
   open: openProp,
   onOpenChange,
+  need,
 }: {
+  /** permission(s) needed; without them the dialog and its trigger don't render */
+  need?: string[]
   /** omit when opened from elsewhere (e.g. a row menu) via `open` */
   trigger?: ReactNode
   title: string
@@ -36,6 +40,8 @@ export function FormDialog({
     await onSave(d)
     setOpen(false)
   })
+  const can = useCan()
+  if (need && !can(...need)) return null
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       {trigger && <DialogTrigger render={<Button variant="outline" />}>{trigger}</DialogTrigger>}

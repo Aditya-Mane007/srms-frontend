@@ -1,6 +1,7 @@
 import { Fragment, useState, type FormEvent, type ReactNode } from "react"
 import { Link, Navigate, Outlet, useLocation } from "react-router"
 import { MoonIcon, SunIcon } from "lucide-react"
+import { usePermissions } from "@/access"
 import { useAuth } from "@/auth"
 import { SelectionProvider } from "@/data"
 import { AppSidebar } from "@/components/app-sidebar"
@@ -38,7 +39,8 @@ function ThemeToggle() {
 export function AppLayout() {
   const { auth } = useAuth()
   const location = useLocation()
-  if (auth.status === "loading") return <p className="p-8 text-muted-foreground" role="status">Loading…</p>
+  const perms = usePermissions()
+  if (auth.status === "loading" || (auth.status === "in" && perms.isPending)) return <p className="p-8 text-muted-foreground" role="status">Loading…</p>
   if (auth.status === "out") return <Navigate to="/login" replace state={{ from: location.pathname }} />
   return (
     <SelectionProvider>

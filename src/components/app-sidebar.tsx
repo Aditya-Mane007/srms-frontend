@@ -7,8 +7,10 @@ import {
   LayoutDashboardIcon,
   LogOutIcon,
   PlusIcon,
+  ShieldIcon,
   UsersIcon,
 } from "lucide-react"
+import { useCan } from "@/access"
 import { useAuth } from "@/auth"
 import { useClients, useCompanies, useSelection } from "@/data"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
@@ -35,12 +37,13 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
-const nav = [
+const nav: { title: string; to?: string; icon: typeof UsersIcon; need?: string[] }[] = [
   { title: "Dashboard", to: "/", icon: LayoutDashboardIcon },
-  { title: "Companies", to: "/companies", icon: BuildingIcon },
+  { title: "Companies", to: "/companies", icon: BuildingIcon, need: ["companies:read"] },
   { title: "Months", icon: CalendarIcon },
   { title: "Templates", icon: FileSpreadsheetIcon },
-  { title: "Users", to: "/users", icon: UsersIcon },
+  { title: "Users", to: "/users", icon: UsersIcon, need: ["users:manage", "companies:assign"] },
+  { title: "Roles", to: "/roles", icon: ShieldIcon, need: ["roles:manage", "users:manage"] },
 ]
 
 /** sidebar-07's team switcher, used as the Company → Client picker. */
@@ -51,6 +54,7 @@ function CompanyClientSwitcher() {
   const { data: clients = [] } = useClients(sel.companyId)
   const company = companies.find((c) => c.id === sel.companyId)
   const client = clients.find((c) => c.id === sel.clientId)
+  const can = useCan()
 
   return (
     <SidebarMenu>
@@ -61,8 +65,8 @@ function CompanyClientSwitcher() {
               {company?.code.slice(0, 3) ?? "—"}
             </div>
             <div className="grid flex-1 text-left text-sm leading-tight">
-              <span className="truncate font-medium">{company?.name ?? "No company yet"}</span>
-              <span className="truncate text-xs">{client ? client.name : "All clients"}</span>
+              <span className="truncate font-medium">{company?.name ?? "No companies assigned"}</span>
+              <span className="truncate text-xs">{company ? (client ? client.name : "All clients") : "Ask your admin for access"}</span>
             </div>
             <ChevronsUpDownIcon className="ml-auto" />
           </DropdownMenuTrigger>
@@ -91,10 +95,14 @@ function CompanyClientSwitcher() {
                 </DropdownMenuGroup>
               </>
             )}
-            <DropdownMenuSeparator />
-            <DropdownMenuItem render={<Link to="/companies" />}>
-              <PlusIcon className="size-4" /> Add company
-            </DropdownMenuItem>
+            {can("companies:create") && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem render={<Link to="/companies" />}>
+                  <PlusIcon className="size-4" /> Add company
+                </DropdownMenuItem>
+              </>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
@@ -142,6 +150,7 @@ function NavUser() {
 
 export function AppSidebar() {
   const { pathname } = useLocation()
+  const can = useCan()
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -150,7 +159,7 @@ export function AppSidebar() {
       <SidebarContent>
         <SidebarGroup>
           <SidebarMenu>
-            {nav.map(({ title, to, icon: Icon }) => (
+            {nav.filter((n) => !n.need || can(...n.need)).map(({ title, to, icon: Icon }) => (
               <SidebarMenuItem key={title}>
                 {to ? (
                   <SidebarMenuButton

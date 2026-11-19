@@ -1,3 +1,4 @@
+import { Checkbox } from "@/components/ui/checkbox"
 import { useState } from "react"
 import { Field, FieldDescription, FieldLabel } from "@/components/ui/field"
 import { Input } from "@/components/ui/input"
@@ -168,5 +169,36 @@ export function SiteDetailFields({ site }: { site?: { name: string; address: str
       <TextField name="workingHours" label="Working hours" defaultValue={site?.workingHours ?? ""} maxLength={500} placeholder="e.g. 9:00 AM – 6:00 PM" />
       <TextField name="restInterval" label="Rest interval" defaultValue={site?.restInterval ?? ""} maxLength={500} placeholder="e.g. 1:00 PM – 2:00 PM" />
     </>
+  )
+}
+
+/** A labelled list of shadcn checkboxes; FormData.getAll(name) gives the checked values. */
+export function CheckboxListField({
+  name,
+  label,
+  items,
+  defaultValues = [],
+  hint,
+}: {
+  name: string
+  label: string
+  items: { value: string; label: string; disabled?: boolean }[]
+  defaultValues?: string[]
+  hint?: string
+}) {
+  return (
+    <fieldset className="flex flex-col gap-2">
+      <legend className="mb-1 text-sm font-medium">{label}</legend>
+      {items.length === 0 && <p className="text-sm text-muted-foreground">None available.</p>}
+      {items.map((i) => (
+        <label key={i.value} className="flex items-center gap-2 text-sm has-disabled:opacity-60">
+          <Checkbox name={name} value={i.value} defaultChecked={defaultValues.includes(i.value)} disabled={i.disabled} />
+          {i.label}
+          {/* a disabled box isn't posted; keep what the user can't change */}
+          {i.disabled && defaultValues.includes(i.value) && <input type="hidden" name={name} value={i.value} />}
+        </label>
+      ))}
+      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+    </fieldset>
   )
 }

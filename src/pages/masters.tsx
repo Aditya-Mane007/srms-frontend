@@ -66,6 +66,7 @@ export function Masters({ companyId }: { companyId: string }) {
           title={<h2 id="cats-h" className="text-lg font-semibold">Skill categories</h2>}
           toolbar={
             <FormDialog
+              need={["companies:update"]}
               trigger={<><PlusIcon /> Add</>}
               title="Add skill category"
               description="Skill categories group designations for minimum wages."
@@ -102,6 +103,7 @@ export function Masters({ companyId }: { companyId: string }) {
           title={<h2 id="wages-h" className="text-lg font-semibold">Minimum wages</h2>}
           toolbar={
             <FormDialog
+              need={["companies:update"]}
               trigger={<><PlusIcon /> Add</>}
               title="Add minimum wage"
               description="The minimum wage of a skill category from a date onwards."
@@ -158,6 +160,7 @@ export function Masters({ companyId }: { companyId: string }) {
           title={<h2 id="desig-h" className="text-lg font-semibold">Designations</h2>}
           toolbar={
             <FormDialog
+              need={["companies:update"]}
               trigger={<><PlusIcon /> Add</>}
               title="Set designation's skill category"
               description="Map a designation, as written in the paysheet, to its skill category."

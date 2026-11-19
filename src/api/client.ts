@@ -17,6 +17,7 @@ export function refresh(): Promise<boolean> {
   refreshing ??= fetch(`${BASE}/auth/refresh`, { method: "POST", credentials: "include" })
     .then(async (r) => {
       setAccessToken(r.ok ? ((await r.json()) as Schemas["AccessToken"]).accessToken : null)
+      if (r.ok) onAccessChanged()
       return r.ok
     })
     .catch(() => false)
@@ -24,6 +25,12 @@ export function refresh(): Promise<boolean> {
       refreshing = null
     })
   return refreshing
+}
+
+let onAccessChanged = () => {}
+/** Called after a token refresh or a 403, so the permissions cache refetches. */
+export const setOnAccessChanged = (fn: () => void) => {
+  onAccessChanged = fn
 }
 
 let onSignedOut = () => {}
@@ -38,6 +45,7 @@ async function authFetch(input: Request): Promise<Response> {
     return fetch(req, { credentials: "include" })
   }
   const res = await send(input)
+  if (res.status === 403) onAccessChanged()
   if (res.status !== 401 || new URL(input.url).pathname.includes("/auth/")) return res
   if (await refresh()) return send(retry)
   onSignedOut()
