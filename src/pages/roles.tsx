@@ -63,6 +63,15 @@ function PermissionFields({ role }: { role?: Role }) {
             <SearchIcon className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-muted-foreground" aria-hidden />
             <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter permissions" aria-label="Filter permissions" className="pl-8" />
           </div>
+          <label className="flex shrink-0 items-center gap-2 text-sm">
+            <Checkbox
+              checked={catalog.length > 0 && sel.size === catalog.length}
+              indeterminate={sel.size > 0 && sel.size < catalog.length}
+              disabled={!catalog.some(held)}
+              onCheckedChange={(c) => set(catalog, c)}
+            />
+            Select all
+          </label>
           <span className="shrink-0 text-sm text-muted-foreground">{sel.size} of {catalog.length} selected</span>
         </div>
         <div className="divide-y rounded-lg border">
