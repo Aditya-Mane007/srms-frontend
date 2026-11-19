@@ -5,7 +5,7 @@ import { toast } from "sonner"
 import { api, must, type Schemas } from "@/api/client"
 import { useCan, usePermissions } from "@/access"
 import { useAuth } from "@/auth"
-import { FormDialog } from "@/components/form-dialog"
+import { ConfirmDialog, FormDialog } from "@/components/form-dialog"
 import { TextField } from "@/components/fields"
 import { Page, str } from "@/components/layout"
 import { DataTable, StatusBadge } from "@/components/data-table"
@@ -136,6 +136,7 @@ export function UsersPage() {
   const { auth } = useAuth()
   const meId = auth.status === "in" ? auth.me.id : ""
   const [editing, setEditing] = useState<Schemas["User"] | null>(null)
+  const [disabling, setDisabling] = useState<Schemas["User"] | null>(null)
 
   const setActive = async (id: string, active: boolean) => {
     try {
@@ -189,7 +190,7 @@ export function UsersPage() {
             )}
             {/* Super Admin can't be disabled: the API answers SUPER_ADMIN_LOCKED, shown as a toast */}
             {u.id !== meId && can("users:manage") && (
-              <Button variant="ghost" size="sm" onClick={() => setActive(u.id, !u.active)}>
+              <Button variant="ghost" size="sm" onClick={() => (u.active ? setDisabling(u) : setActive(u.id, true))}>
                 <PowerIcon aria-hidden /> {u.active ? "Disable" : "Enable"}
                 <span className="sr-only"> {u.name}</span>
               </Button>
@@ -197,6 +198,21 @@ export function UsersPage() {
           </>
         )}
       />
+      <ConfirmDialog
+        open={!!disabling}
+        onOpenChange={(o) => !o && setDisabling(null)}
+        title={`Disable ${disabling?.name ?? "user"}?`}
+        confirmLabel="Disable user"
+        destructive
+        icon={<PowerIcon />}
+        onConfirm={async () => {
+          await must(api.PATCH("/users/{id}", { params: { path: { id: disabling!.id } }, body: { active: false } }))
+          await qc.invalidateQueries({ queryKey: ["users"] })
+          toast.success("User disabled")
+        }}
+      >
+        They won't be able to sign in until someone enables them again. Their roles and companies are kept.
+      </ConfirmDialog>
       {editing && <AccessDialog key={editing.id} user={editing} onClose={() => setEditing(null)} />}
     </Page>
   )
