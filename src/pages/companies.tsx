@@ -81,7 +81,7 @@ export function CompaniesPage() {
         rowKey={(c) => c.id}
         searchLabel="Search companies"
         status={{ active: "Active", inactive: "Inactive" }}
-        empty="No companies yet. Add the first company to start."
+        empty="You don't have any companies assigned yet. Ask your admin to assign one."
         columns={[
           { key: "code", label: "Code", className: "font-mono", cell: (c) => c.code },
           {

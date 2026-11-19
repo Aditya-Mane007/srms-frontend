@@ -18,9 +18,7 @@ export function DashboardPage() {
   if (companies && !company)
     return (
       <Page crumbs={[{ label: "Dashboard" }]}>
-        <p>
-          Start by <Link className="underline" to="/companies">adding your first company</Link>.
-        </p>
+        <p className="text-muted-foreground">You don't have any companies assigned yet. Ask your admin to assign one.</p>
       </Page>
     )
 
