@@ -74,6 +74,7 @@ export function ConfirmDialog({
   open,
   onOpenChange,
   title,
+  description,
   children,
   confirmLabel,
   destructive,
@@ -83,6 +84,8 @@ export function ConfirmDialog({
   open: boolean
   onOpenChange: (open: boolean) => void
   title: string
+  /** when set, it goes in the header and `children` become the body */
+  description?: string
   children: ReactNode
   confirmLabel: string
   destructive?: boolean
@@ -98,9 +101,10 @@ export function ConfirmDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader className="-mx-4 -mt-4 border-b p-4 pr-12">
           <DialogTitle>{title}</DialogTitle>
-          <DialogDescription>{children}</DialogDescription>
+          <DialogDescription>{description ?? children}</DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
+          {description && <div className="text-sm">{children}</div>}
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}><XIcon /> Cancel</Button>
             <Button type="submit" variant={destructive ? "destructive" : "default"} disabled={busy}>

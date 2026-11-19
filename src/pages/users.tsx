@@ -106,6 +106,7 @@ function AccessFields({ roleIds = [], companyIds = [] }: { roleIds?: string[]; c
 }
 
 function AccessDialog({ user, onClose }: { user: Schemas["User"]; onClose: () => void }) {
+  const qc = useQueryClient()
   const can = useCan()
   const { data } = useQuery({
     queryKey: ["users", user.id, "access"],
@@ -122,6 +123,7 @@ function AccessDialog({ user, onClose }: { user: Schemas["User"]; onClose: () =>
       onSave={async (d) => {
         if (can("roles:manage")) await must(api.PUT("/users/{id}/roles", { ...path, body: { roleIds: ids(d, "roleIds") } }))
         if (can("companies:assign")) await must(api.PUT("/users/{id}/companies", { ...path, body: { companyIds: ids(d, "companyIds") } }))
+        await qc.invalidateQueries({ queryKey: ["users"] })
         toast.success("Access saved")
       }}
     >
@@ -160,6 +162,7 @@ export function UsersPage() {
           submitIcon={<SendIcon />}
           onSave={async (d) => {
             await must(api.POST("/invitations", { body: { email: str(d, "email"), roleIds: ids(d, "roleIds"), companyIds: ids(d, "companyIds") } }))
+            await qc.invalidateQueries({ queryKey: ["users"] })
             toast.success("Invite sent")
           }}
         >
@@ -202,6 +205,7 @@ export function UsersPage() {
         open={!!disabling}
         onOpenChange={(o) => !o && setDisabling(null)}
         title={`Disable ${disabling?.name ?? "user"}?`}
+        description="This blocks their access to SRMS."
         confirmLabel="Disable user"
         destructive
         icon={<PowerIcon />}
