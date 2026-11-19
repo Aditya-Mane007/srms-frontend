@@ -1,5 +1,6 @@
 import { BrowserRouter, Route, Routes } from "react-router"
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query"
+import { toast } from "sonner"
 import { RequireCan } from "@/access"
 import { AuthProvider } from "@/auth"
 import { AppLayout, Page } from "@/components/layout"
@@ -12,7 +13,11 @@ import { MastersPage } from "@/pages/masters"
 import { RolesPage } from "@/pages/roles"
 import { UsersPage } from "@/pages/users"
 
-const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } })
+// API errors from any query surface as a toast
+const queryClient = new QueryClient({
+  queryCache: new QueryCache({ onError: (e) => toast.error(e.message) }),
+  defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } },
+})
 
 export default function App() {
   return (

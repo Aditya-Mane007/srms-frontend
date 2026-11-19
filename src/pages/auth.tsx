@@ -40,7 +40,7 @@ export function LoginPage() {
   const { auth, login } = useAuth()
   const state = useLocation().state as { from?: string; email?: string } | null
   const from = state?.from ?? "/"
-  const { busy, error, onSubmit } = useSubmit((d) => login(str(d, "email"), str(d, "password")))
+  const { busy, onSubmit } = useSubmit((d) => login(str(d, "email"), str(d, "password")))
   if (auth.status === "in") return <Navigate to={from} replace />
   return (
     <AuthCard title="Welcome back" subtitle="Sign in to SRMS">
@@ -58,7 +58,6 @@ export function LoginPage() {
           </div>
           <Input id="password" name="password" type="password" autoComplete="current-password" required />
         </Field>
-        <ErrorText error={error} />
         <Field>
           <Button type="submit" disabled={busy}>
             <LogInIcon aria-hidden /> {busy ? "Signing in…" : "Sign in"}
@@ -71,7 +70,7 @@ export function LoginPage() {
 
 export function ForgotPasswordPage() {
   const [sent, setSent] = useState(false)
-  const { busy, error, onSubmit } = useSubmit(async (d) => {
+  const { busy, onSubmit } = useSubmit(async (d) => {
     await must(api.POST("/auth/forgot-password", { body: { email: str(d, "email") } }))
     setSent(true)
   })
@@ -85,7 +84,6 @@ export function ForgotPasswordPage() {
             <FieldLabel htmlFor="email">Email</FieldLabel>
             <Input id="email" name="email" type="email" autoComplete="email" required />
           </Field>
-          <ErrorText error={error} />
           <Button type="submit" disabled={busy}>
             <SendIcon aria-hidden /> Send link
           </Button>
@@ -111,7 +109,7 @@ function NewPassword() {
 export function ResetPasswordPage() {
   const token = useSearchParams()[0].get("token") ?? ""
   const navigate = useNavigate()
-  const { busy, error, onSubmit } = useSubmit(async (d) => {
+  const { busy, onSubmit } = useSubmit(async (d) => {
     await must(api.POST("/auth/reset-password", { body: { token, password: str(d, "password") } }))
     navigate("/login", { replace: true })
   })
@@ -119,7 +117,7 @@ export function ResetPasswordPage() {
     <AuthCard title="Set a new password" subtitle="Choose a password for your account">
       <form onSubmit={onSubmit} className="contents">
         <NewPassword />
-        <ErrorText error={token ? error : "This link is missing its token. Ask for a new one."} />
+        <ErrorText error={token ? null : "This link is missing its token. Ask for a new one."} />
         <Button type="submit" disabled={busy || !token}>
           <KeyRoundIcon aria-hidden /> Save password
         </Button>
@@ -131,7 +129,7 @@ export function ResetPasswordPage() {
 export function AcceptInvitePage() {
   const token = useSearchParams()[0].get("token") ?? ""
   const navigate = useNavigate()
-  const { busy, error, onSubmit } = useSubmit(async (d) => {
+  const { busy, onSubmit } = useSubmit(async (d) => {
     const user = await must(
       api.POST("/invitations/accept", { body: { token, name: str(d, "name"), password: str(d, "password") } }),
     )
@@ -145,7 +143,7 @@ export function AcceptInvitePage() {
           <Input id="name" name="name" autoComplete="name" maxLength={200} required />
         </Field>
         <NewPassword />
-        <ErrorText error={token ? error : "This link is missing its token. Ask for a new invite."} />
+        <ErrorText error={token ? null : "This link is missing its token. Ask for a new invite."} />
         <Button type="submit" disabled={busy || !token}>
           <CheckIcon aria-hidden /> Accept invite
         </Button>

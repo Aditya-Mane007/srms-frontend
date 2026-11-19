@@ -1,7 +1,7 @@
 import { SaveIcon, XIcon } from "lucide-react"
 import { useState, type ReactNode } from "react"
 import { useCan } from "@/access"
-import { ErrorText, useSubmit } from "@/components/layout"
+import { useSubmit } from "@/components/layout"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { FieldGroup } from "@/components/ui/field"
@@ -36,7 +36,7 @@ export function FormDialog({
   const [own, setOwn] = useState(false)
   const open = openProp ?? own
   const setOpen = (o: boolean) => (onOpenChange ?? setOwn)(o)
-  const { busy, error, onSubmit } = useSubmit(async (d) => {
+  const { busy, onSubmit } = useSubmit(async (d) => {
     await onSave(d)
     setOpen(false)
   })
@@ -54,7 +54,6 @@ export function FormDialog({
         <form onSubmit={onSubmit} className="flex min-h-0 flex-1 flex-col">
           <FieldGroup className="-mx-4 min-h-0 w-auto my-2 overflow-y-auto px-4 py-1">
             {children}
-            <ErrorText error={error} />
           </FieldGroup>
           <DialogFooter className="h-16 shrink-0 justify-center bg-transparent sm:items-center">
             <DialogClose render={<Button type="button" variant="outline" />}>
@@ -90,7 +89,7 @@ export function ConfirmDialog({
   icon?: ReactNode
   onConfirm: () => Promise<void>
 }) {
-  const { busy, error, onSubmit } = useSubmit(async () => {
+  const { busy, onSubmit } = useSubmit(async () => {
     await onConfirm()
     onOpenChange(false)
   })
@@ -102,7 +101,6 @@ export function ConfirmDialog({
           <DialogDescription>{children}</DialogDescription>
         </DialogHeader>
         <form onSubmit={onSubmit} className="flex flex-col gap-4">
-          <ErrorText error={error} />
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}><XIcon /> Cancel</Button>
             <Button type="submit" variant={destructive ? "destructive" : "default"} disabled={busy}>

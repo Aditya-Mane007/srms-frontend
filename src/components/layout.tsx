@@ -1,3 +1,4 @@
+import { toast } from "sonner"
 import { Fragment, useState, type FormEvent, type ReactNode } from "react"
 import { Link, Navigate, Outlet, useLocation } from "react-router"
 import { MoonIcon, SunIcon } from "lucide-react"
@@ -97,20 +98,18 @@ export function Page({ crumbs, actions, children, bare }: { crumbs: Crumb[]; act
 /** Runs a form submit with busy + error state; the handler gets the form's data. */
 export function useSubmit(fn: (data: FormData) => Promise<void>) {
   const [busy, setBusy] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const onSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setBusy(true)
-    setError(null)
     try {
       await fn(new FormData(e.currentTarget))
     } catch (err) {
-      setError((err as Error).message)
+      toast.error((err as Error).message)
     } finally {
       setBusy(false)
     }
   }
-  return { busy, error, onSubmit }
+  return { busy, onSubmit }
 }
 
 export const ErrorText = ({ error }: { error: string | null | undefined }) =>

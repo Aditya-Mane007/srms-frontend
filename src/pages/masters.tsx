@@ -3,11 +3,11 @@ import { useQueryClient } from "@tanstack/react-query"
 import { PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 import { api, must } from "@/api/client"
-import { useCompanies, useDesignations, useMinimumWages, useSkillCategories } from "@/data"
+import { useCompanies, useSkillCategories } from "@/data"
 import { DataTable } from "@/components/data-table"
 import { FormDialog } from "@/components/form-dialog"
 import { DateField, SelectField, TextField } from "@/components/fields"
-import { ErrorText, Page, str } from "@/components/layout"
+import { Page, str } from "@/components/layout"
 
 /** Backend dates are YYYY-MM-DD (or ISO); registers show DD-MM-YYYY. */
 const ddmmyyyy = (d: string) => d.slice(0, 10).split("-").reverse().join("-")
@@ -50,8 +50,6 @@ export function MastersPage() {
 export function Masters({ companyId }: { companyId: string }) {
   const qc = useQueryClient()
   const cats = useSkillCategories(companyId)
-  const wages = useMinimumWages(companyId)
-  const desigs = useDesignations(companyId)
   const catName = (id: string) => cats.data?.find((c) => c.id === id)?.name ?? "—"
   const path = { params: { path: { id: companyId } } }
 
@@ -60,7 +58,6 @@ export function Masters({ companyId }: { companyId: string }) {
       <Section
         id="cats-h"
       >
-        <ErrorText error={cats.error?.message} />
         <DataTable
           compact
           title={<h2 id="cats-h" className="text-lg font-semibold">Skill categories</h2>}
@@ -97,7 +94,6 @@ export function Masters({ companyId }: { companyId: string }) {
       <Section
         id="wages-h"
       >
-        <ErrorText error={wages.error?.message} />
         <DataTable
           compact
           title={<h2 id="wages-h" className="text-lg font-semibold">Minimum wages</h2>}
@@ -154,7 +150,6 @@ export function Masters({ companyId }: { companyId: string }) {
       <Section
         id="desig-h"
       >
-        <ErrorText error={desigs.error?.message} />
         <DataTable
           compact
           title={<h2 id="desig-h" className="text-lg font-semibold">Designations</h2>}

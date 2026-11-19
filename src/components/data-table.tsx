@@ -104,7 +104,7 @@ export function DataTable<T>({
     )
 
   const params: ListParams = { limit: compact ? 100 : size, offset: compact ? 0 : (pageNo - 1) * size, ...(q.trim() && { q: q.trim() }), ...(st && { status: st }) }
-  const { data, error, isFetching, refetch } = useQuery({
+  const { data, isFetching, refetch } = useQuery({
     queryKey: [...queryKey, "list", params],
     queryFn: () => must(fetch(params)),
     placeholderData: keepPreviousData,
@@ -184,7 +184,6 @@ export function DataTable<T>({
         </div>
       </div>
 
-      {error && <p role="alert" className="text-sm text-destructive">{error.message}</p>}
 
       <div className={`rounded-lg border ${height === "fill" ? "min-h-0 flex-1 overflow-hidden [&>[data-slot=table-container]]:h-full [&>[data-slot=table-container]]:overflow-auto" : "overflow-hidden"}`}>
         <Table>

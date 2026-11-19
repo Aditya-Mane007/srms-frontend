@@ -58,7 +58,7 @@ export function EmployeeSeedDialog({ companyId, open, onOpenChange, onSaved }: {
       const r = await send(file, true)
       if (r) setState({ step: "preview", file, result: r })
     } catch (e) {
-      setError((e as Error).message)
+      toast.error((e as Error).message)
       setState({ step: "pick" })
     }
   }
@@ -73,7 +73,7 @@ export function EmployeeSeedDialog({ companyId, open, onOpenChange, onSaved }: {
       onSaved()
       onOpenChange(false)
     } catch (e) {
-      setError((e as Error).message)
+      toast.error((e as Error).message)
       setState({ step: "pick" })
     }
   }
