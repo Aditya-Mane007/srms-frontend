@@ -58,11 +58,11 @@ function PermissionFields({ role }: { role?: Role }) {
       {[...sel].map((p) => <input key={p} type="hidden" name="permissions" value={p} />)}
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-1 text-sm font-medium">Permissions</legend>
-        <div className="flex items-center gap-3">
-          <div className="relative flex-1">
-            <SearchIcon className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-muted-foreground" aria-hidden />
-            <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter permissions" aria-label="Filter permissions" className="pl-8" />
-          </div>
+        <div className="relative">
+          <SearchIcon className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-muted-foreground" aria-hidden />
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Filter permissions" aria-label="Filter permissions" className="pl-8" />
+        </div>
+        <div className="flex items-center justify-between gap-3">
           <label className="flex shrink-0 items-center gap-2 text-sm">
             <Checkbox
               checked={catalog.length > 0 && sel.size === catalog.length}
