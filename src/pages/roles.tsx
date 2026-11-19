@@ -66,7 +66,6 @@ function PermissionFields({ role }: { role?: Role }) {
           <label className="flex shrink-0 items-center gap-2 text-sm">
             <Checkbox
               checked={catalog.length > 0 && sel.size === catalog.length}
-              indeterminate={sel.size > 0 && sel.size < catalog.length}
               disabled={!catalog.some(held)}
               onCheckedChange={(c) => set(catalog, c)}
             />
