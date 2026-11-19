@@ -1,21 +1,72 @@
 import { useState } from "react"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
-import { KeyRoundIcon, MailPlusIcon, PowerIcon, SaveIcon, SendIcon } from "lucide-react"
+import { KeyRoundIcon, LockIcon, SearchIcon, MailPlusIcon, PowerIcon, SaveIcon, SendIcon } from "lucide-react"
 import { toast } from "sonner"
 import { api, must, type Schemas } from "@/api/client"
 import { useCan, usePermissions } from "@/access"
 import { useAuth } from "@/auth"
 import { FormDialog } from "@/components/form-dialog"
-import { CheckboxListField, TextField } from "@/components/fields"
+import { TextField } from "@/components/fields"
 import { Page, str } from "@/components/layout"
 import { DataTable, StatusBadge } from "@/components/data-table"
 import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
+import { Input } from "@/components/ui/input"
 import { useCompanies } from "@/data"
 import { useGrantable, useRoles } from "@/pages/roles"
 
 const ids = (d: FormData, k: string) => d.getAll(k).map(String)
 
-/** Roles and companies checkboxes; only what the signed-in user may hand out is enabled. */
+type Item = { value: string; label: string; meta?: string; disabled?: boolean }
+
+/** Checkbox list for long lists: filter, select all, "x of N selected", already-picked first, scrolls at a fixed height. */
+function PickList({ name, label, items, defaultValues, hint }: { name: string; label: string; items: Item[]; defaultValues: string[]; hint?: string }) {
+  const [sel, setSel] = useState(() => new Set(defaultValues))
+  const [q, setQ] = useState("")
+  // order by the initial selection so rows don't jump while ticking
+  const [first] = useState(() => new Set(defaultValues))
+  const free = items.filter((i) => !i.disabled).map((i) => i.value)
+  const set = (vs: string[], on: boolean) =>
+    setSel((s) => {
+      const n = new Set(s)
+      for (const v of vs) on ? n.add(v) : n.delete(v)
+      return n
+    })
+  const shown = items
+    .filter((i) => `${i.label} ${i.meta ?? ""}`.toLowerCase().includes(q.toLowerCase()))
+    .sort((x, y) => Number(first.has(y.value)) - Number(first.has(x.value)))
+  return (
+    <fieldset className="flex flex-col gap-2">
+      <legend className="mb-1 text-sm font-medium">{label}</legend>
+      {[...sel].map((v) => <input key={v} type="hidden" name={name} value={v} />)}
+      <div className="relative">
+        <SearchIcon className="pointer-events-none absolute top-2.5 left-2.5 size-4 text-muted-foreground" aria-hidden />
+        <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={`Filter ${label.toLowerCase()}`} aria-label={`Filter ${label.toLowerCase()}`} className="pl-8" />
+      </div>
+      <div className="flex items-center justify-between gap-3 text-sm">
+        <label className="flex items-center gap-2">
+          <Checkbox checked={free.length > 0 && free.every((v) => sel.has(v))} disabled={!free.length} onCheckedChange={(c) => set(free, c)} />
+          Select all
+        </label>
+        <span className="text-muted-foreground">{sel.size} of {items.length} selected</span>
+      </div>
+      <div className="max-h-60 divide-y overflow-auto rounded-lg border">
+        {shown.length === 0 && <p className="p-3 text-sm text-muted-foreground">Nothing matches.</p>}
+        {shown.map((i) => (
+          <label key={i.value} className="flex items-center gap-3 px-3 py-2 text-sm has-disabled:opacity-60" title={i.disabled ? "You can't hand this out" : undefined}>
+            <Checkbox checked={sel.has(i.value)} disabled={i.disabled} onCheckedChange={(c) => set([i.value], c)} />
+            <span className="flex-1">{i.label}</span>
+            {i.meta && <span className="text-xs text-muted-foreground">{i.meta}</span>}
+            {i.disabled && <LockIcon className="size-3.5 text-muted-foreground" aria-hidden />}
+          </label>
+        ))}
+      </div>
+      {hint && <p className="text-xs text-muted-foreground">{hint}</p>}
+    </fieldset>
+  )
+}
+
+/** Roles and companies pickers; only what the signed-in user may hand out is enabled. */
 function AccessFields({ roleIds = [], companyIds = [] }: { roleIds?: string[]; companyIds?: string[] }) {
   const can = useCan()
   const { data: me } = usePermissions()
@@ -26,22 +77,27 @@ function AccessFields({ roleIds = [], companyIds = [] }: { roleIds?: string[]; c
   return (
     <>
       {can("roles:manage") && (
-        <CheckboxListField
+        <PickList
           name="roleIds"
           label="Roles"
           defaultValues={roleIds}
           // shortcut: Super Admin is listed only on its holder, locked; the API keeps it whatever is sent
           items={roles
             .filter((r) => r.system !== "SUPER_ADMIN" || isSuper)
-            .map((r) => ({ value: r.id, label: r.name, disabled: !grantable(r) }))}
+            .map((r) => ({
+              value: r.id,
+              label: r.name,
+              meta: `${r.system ? "System · " : ""}${r.system === "SUPER_ADMIN" ? "All" : r.permissions.length} permissions`,
+              disabled: !grantable(r),
+            }))}
         />
       )}
       {can("companies:assign") && (
-        <CheckboxListField
+        <PickList
           name="companyIds"
           label="Companies"
           defaultValues={companyIds}
-          items={companies.map((c) => ({ value: c.id, label: `${c.name} (${c.code})` }))}
+          items={companies.map((c) => ({ value: c.id, label: c.name, meta: c.code }))}
           hint={me?.companiesAll ? "A role with All companies access overrides this list." : "Only companies you can see are listed."}
         />
       )}
