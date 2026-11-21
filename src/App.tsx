@@ -1,9 +1,9 @@
 import { BrowserRouter, Route, Routes } from "react-router"
 import { QueryCache, QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { toast } from "sonner"
-import { RequireCan } from "@/access"
+import { NotFoundPage, RequireCan } from "@/access"
 import { AuthProvider } from "@/auth"
-import { AppLayout, Page } from "@/components/layout"
+import { AppLayout } from "@/components/layout"
 import { Toaster } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { AcceptInvitePage, ForgotPasswordPage, LoginPage, ResetPasswordPage } from "@/pages/auth"
@@ -39,7 +39,7 @@ export default function App() {
                 <Route path="companies/:companyId/clients/:clientId" element={<RequireCan any={["clients:read"]}><ClientPage /></RequireCan>} />
                 <Route path="users" element={<RequireCan any={["users:manage", "companies:assign"]}><UsersPage /></RequireCan>} />
                 <Route path="roles" element={<RequireCan any={["roles:manage", "users:manage"]}><RolesPage /></RequireCan>} />
-                <Route path="*" element={<Page crumbs={[{ label: "Page not found" }]}>{null}</Page>} />
+                <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Routes>
           </BrowserRouter>
