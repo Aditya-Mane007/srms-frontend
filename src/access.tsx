@@ -41,7 +41,7 @@ export function NotFoundPage() {
         <h1 className="text-xl font-semibold">Page not found</h1>
         <p className="max-w-xs text-sm text-muted-foreground">The page you're looking for doesn't exist or was moved.</p>
         <Button className="mt-2" render={<Link to="/" />}>
-          <HomeIcon aria-hidden /> Home
+          <HomeIcon aria-hidden /> Back to Homepage
         </Button>
       </div>
     </Page>
