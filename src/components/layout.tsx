@@ -47,7 +47,8 @@ export function AppLayout() {
     <SelectionProvider>
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset className="h-svh">
+        {/* min-w-0 + overflow-hidden: wide content scrolls inside the page body, never the whole screen */}
+        <SidebarInset className="h-svh min-w-0 overflow-hidden">
           <Outlet />
         </SidebarInset>
       </SidebarProvider>
