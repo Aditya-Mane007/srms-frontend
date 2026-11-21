@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { DataTable, type ListParams } from "@/components/data-table"
 
 type Role = Schemas["Role"]
 
@@ -125,11 +125,26 @@ function PermissionFields({ role }: { role?: Role }) {
 
 const roleBody = (d: FormData) => ({ name: str(d, "name"), permissions: d.getAll("permissions").map(String) as never })
 
+// shortcut: /roles isn't paged on the API; search and paging happen here. Fine for tens of roles, move to the API if it grows.
+const fetchRoles = async ({ limit, offset, q }: ListParams) => {
+  const { data, error } = await api.GET("/roles")
+  if (error) return { error }
+  const rows = data.data.filter((r) => !q || r.name.toLowerCase().includes(q.toLowerCase()))
+  const total = rows.length
+  const page = Math.floor(offset / limit) + 1
+  const pages = Math.max(1, Math.ceil(total / limit))
+  return {
+    data: {
+      data: rows.slice(offset, offset + limit),
+      meta: { limit, offset, total_items: total, sort: "name", order: "asc" as const, total_pages: pages, page, has_next_page: page < pages, has_previous_page: page > 1 },
+    },
+  }
+}
+
 export function RolesPage() {
   const qc = useQueryClient()
   const can = useCan()
   const { data: me } = usePermissions()
-  const { data: roles = [], isPending } = useRoles()
   const [editing, setEditing] = useState<Role | null>(null)
   const [deleting, setDeleting] = useState<Role | null>(null)
   const reload = () => qc.invalidateQueries({ queryKey: ["roles"] })
@@ -154,53 +169,37 @@ export function RolesPage() {
         </FormDialog>
       }
     >
-      <div className="rounded-xl border bg-card">
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Role</TableHead>
-              <TableHead>Permissions</TableHead>
-              <TableHead>Users</TableHead>
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {isPending && (
-              <TableRow>
-                <TableCell colSpan={4} className="text-muted-foreground">Loading…</TableCell>
-              </TableRow>
-            )}
-            {roles.map((r) => (
-              <TableRow key={r.id}>
-                <TableCell className="font-medium">
-                  {r.name} {r.system && <Badge variant="outline">System</Badge>}
-                </TableCell>
-                <TableCell>{r.system === "SUPER_ADMIN" ? "All" : r.permissions.length}</TableCell>
-                <TableCell>{r.userCount}</TableCell>
-                <TableCell className="text-right">
-                  {editable(r) ? (
-                    <>
-                      <Button variant="ghost" size="sm" onClick={() => setEditing(r)}>
-                        <PencilIcon aria-hidden /> Edit<span className="sr-only"> {r.name}</span>
-                      </Button>
-                      {!r.system && (
-                        <Button variant="ghost" size="sm" onClick={() => setDeleting(r)}>
-                          <Trash2Icon aria-hidden /> Delete<span className="sr-only"> {r.name}</span>
-                        </Button>
-                      )}
-                    </>
-                  ) : (
-                    <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
-                      <LockIcon className="size-3" aria-hidden /> Locked
-                    </span>
-                  )}
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-
+      <DataTable
+        id="roles"
+        queryKey={["roles"]}
+        fetch={fetchRoles}
+        rowKey={(r) => r.id}
+        searchLabel="Search roles"
+        empty="No roles match."
+        columns={[
+          { key: "name", label: "Role", cell: (r) => <span className="font-medium">{r.name} {r.system && <Badge variant="outline">System</Badge>}</span> },
+          { key: "permissions", label: "Permissions", cell: (r) => (r.system === "SUPER_ADMIN" ? "All" : r.permissions.length) },
+          { key: "users", label: "Users", cell: (r) => r.userCount },
+        ]}
+        actions={(r) =>
+          editable(r) ? (
+            <>
+              <Button variant="ghost" size="sm" onClick={() => setEditing(r)}>
+                <PencilIcon aria-hidden /> Edit<span className="sr-only"> {r.name}</span>
+              </Button>
+              {!r.system && (
+                <Button variant="ghost" size="sm" onClick={() => setDeleting(r)}>
+                  <Trash2Icon aria-hidden /> Delete<span className="sr-only"> {r.name}</span>
+                </Button>
+              )}
+            </>
+          ) : (
+            <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <LockIcon className="size-3" aria-hidden /> Locked
+            </span>
+          )
+        }
+      />
       {editing && (
         <FormDialog
           key={editing.id}
