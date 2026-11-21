@@ -38,18 +38,11 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }
       closeButton
       toastOptions={{
-        // tinted card per type, icon in a white circle, X top-right (theme tokens: destructive/warning/success/info)
         classNames: {
-          toast: "!items-start !gap-3 !rounded-xl !p-4 !pr-10 !shadow-lg !bg-linear-to-b to-popover",
-          icon: "!m-0 !size-9 shrink-0 place-items-center rounded-full bg-background shadow-sm [&>svg]:!size-4.5",
-          title: "!text-sm !font-semibold",
-          description: "!text-sm !text-muted-foreground",
-          error: "from-destructive/15 [&_[data-icon]]:text-destructive",
-          warning: "from-warning/15 [&_[data-icon]]:text-warning",
-          success: "from-success/15 [&_[data-icon]]:text-success",
-          info: "from-info/15 [&_[data-icon]]:text-info",
+          toast: "cn-toast pr-10",
+          // sonner puts the X on the top-left corner; move it to the end of the message
           closeButton:
-            "!left-auto !right-3 !top-4 !transform-none !border-0 !bg-transparent text-muted-foreground hover:!text-foreground",
+            "!left-auto !right-2 !top-1/2 !-translate-y-1/2 !transform !border-0 !bg-transparent text-muted-foreground hover:!text-foreground",
         },
       }}
       {...props}
