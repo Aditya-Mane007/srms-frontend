@@ -64,7 +64,7 @@ export function Page({ crumbs, actions, children, bare }: { crumbs: Crumb[]; act
   const title = crumbs[crumbs.length - 1]?.label
   return (
     <>
-      <header className="flex h-16 shrink-0 items-center gap-2 border-b px-4">
+      <header className="flex h-12 shrink-0 items-center gap-2 border-b px-4">
         {/* -ml-1.5 cancels the button padding so the icon lines up with the page text below */}
         <SidebarTrigger className="-ml-1.5" />
         <Separator orientation="vertical" className="mr-2 data-vertical:h-4 data-vertical:self-auto" />
