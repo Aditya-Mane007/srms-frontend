@@ -1,7 +1,7 @@
 import type { ReactNode } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { Link } from "react-router"
-import { HomeIcon, MapPinOffIcon } from "lucide-react"
+import { HomeIcon } from "lucide-react"
 import { api, must } from "@/api/client"
 import { useAuth } from "@/auth"
 import { Page } from "@/components/layout"
@@ -33,15 +33,12 @@ export function RequireCan({ any, children }: { any: string[]; children: ReactNo
 export function NotFoundPage() {
   return (
     <Page bare crumbs={[{ label: "Page not found" }]}>
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 py-16 text-center">
-        <span className="grid size-14 place-items-center rounded-full bg-muted text-muted-foreground">
-          <MapPinOffIcon className="size-6" aria-hidden />
-        </span>
-        <p className="font-mono text-4xl font-semibold text-muted-foreground">404</p>
-        <h1 className="text-xl font-semibold">Page not found</h1>
-        <p className="max-w-xs text-sm text-muted-foreground">The page you're looking for doesn't exist or was moved.</p>
-        <Button className="mt-2" render={<Link to="/" />}>
-          <HomeIcon aria-hidden /> Back to Homepage
+      <div className="flex flex-1 flex-col items-center justify-center gap-4 py-16 text-center">
+        <p className="text-8xl font-bold tracking-tight text-primary">404</p>
+        <h1 className="text-3xl font-semibold">Page not found</h1>
+        <p className="text-muted-foreground">The page you're looking for doesn't exist or has been moved.</p>
+        <Button size="lg" className="mt-4" render={<Link to="/" />}>
+          <HomeIcon aria-hidden /> Go Home
         </Button>
       </div>
     </Page>
