@@ -2,17 +2,18 @@ import { Link, useLocation } from "react-router"
 import {
   BuildingIcon,
   CalendarIcon,
+  ChevronRightIcon,
   ChevronsUpDownIcon,
   FileSpreadsheetIcon,
   LayoutDashboardIcon,
   LogOutIcon,
   PlusIcon,
   ShieldIcon,
-  UsersIcon,
 } from "lucide-react"
 import { useCan } from "@/access"
 import { useAuth } from "@/auth"
 import { useCompanies, useSelection } from "@/data"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 import {
   DropdownMenu,
@@ -33,17 +34,24 @@ import {
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarMenuSub,
+  SidebarMenuSubButton,
+  SidebarMenuSubItem,
   SidebarRail,
   useSidebar,
 } from "@/components/ui/sidebar"
 
-const nav: { title: string; to?: string; icon: typeof UsersIcon; need?: string[] }[] = [
+const nav: { title: string; to?: string; icon: typeof ShieldIcon; need?: string[] }[] = [
   { title: "Dashboard", to: "/", icon: LayoutDashboardIcon },
   { title: "Companies", to: "/companies", icon: BuildingIcon, need: ["companies:read"] },
   { title: "Months", icon: CalendarIcon },
   { title: "Templates", icon: FileSpreadsheetIcon },
-  { title: "Users", to: "/users", icon: UsersIcon, need: ["users:manage", "companies:assign"] },
-  { title: "Roles", to: "/roles", icon: ShieldIcon, need: ["roles:manage", "users:manage"] },
+]
+
+// Identity and access: grouped under one collapsible "IAM" item
+const iam: { title: string; to: string; need: string[] }[] = [
+  { title: "Users", to: "/users", need: ["users:manage", "companies:assign"] },
+  { title: "Roles", to: "/roles", need: ["roles:manage", "users:manage"] },
 ]
 
 /** sidebar-07's team switcher, used as the company picker. */
@@ -134,6 +142,7 @@ function NavUser() {
 export function AppSidebar() {
   const { pathname } = useLocation()
   const can = useCan()
+  const iamLinks = iam.filter((l) => can(...l.need))
   return (
     <Sidebar collapsible="icon">
       <SidebarHeader>
@@ -164,6 +173,26 @@ export function AppSidebar() {
                 )}
               </SidebarMenuItem>
             ))}
+            {iamLinks.length > 0 && (
+              <Collapsible defaultOpen={iamLinks.some((l) => pathname.startsWith(l.to))} render={<SidebarMenuItem />}>
+                <CollapsibleTrigger render={<SidebarMenuButton tooltip="IAM" className="group/iam" />}>
+                  <ShieldIcon />
+                  <span>IAM</span>
+                  <ChevronRightIcon className="ml-auto transition-transform group-data-[panel-open]/iam:rotate-90" />
+                </CollapsibleTrigger>
+                <CollapsibleContent>
+                  <SidebarMenuSub>
+                    {iamLinks.map((l) => (
+                      <SidebarMenuSubItem key={l.to}>
+                        <SidebarMenuSubButton isActive={pathname.startsWith(l.to)} render={<Link to={l.to} />}>
+                          <span>{l.title}</span>
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
+                </CollapsibleContent>
+              </Collapsible>
+            )}
           </SidebarMenu>
         </SidebarGroup>
       </SidebarContent>
