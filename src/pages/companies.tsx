@@ -330,7 +330,7 @@ export function ClientPage() {
   const { data: clients } = useClients(companyId)
   const company = companies?.find((c) => c.id === companyId)
   const client = clients?.find((c) => c.id === clientId)
-  const base = [{ label: "Companies", to: "/companies" }, { label: company?.name ?? "…", to: `/companies/${companyId}` }]
+  const base = [{ label: "Companies", to: "/companies" }, { label: company?.name ?? "…", to: `/companies/${companyId}` }, { label: "Clients", to: `/companies/${companyId}` }]
   if (!client) return <Page crumbs={[...base, { label: clients ? "Not found" : "Loading…" }]}>{null}</Page>
   const refresh = () => Promise.all([qc.invalidateQueries({ queryKey: ["clients", companyId] }), qc.invalidateQueries({ queryKey: ["sites", clientId] })])
   const tab = sp.get("tab") === "sites" ? "sites" : "employees"
