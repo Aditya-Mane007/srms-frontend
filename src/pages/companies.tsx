@@ -342,10 +342,11 @@ function ClientCreateFields() {
   )
 }
 
-type Employee = components["schemas"]["Employee"]
+type Employee = components["schemas"]["Employee"] & { site: { siteCode: string } }
 const employeeColumns = [
   { key: "empCode", label: "Code", className: "font-mono", cell: (e: Employee) => e.empCode },
   { key: "name", label: "Name", cell: (e: Employee) => e.name },
+  { key: "site", label: "Site", className: "font-mono", cell: (e: Employee) => e.site.siteCode },
   { key: "designation", label: "Designation", cell: (e: Employee) => e.designation },
   { key: "joinDate", label: "Joined", cell: (e: Employee) => format(parseISO(e.joinDate), "dd MMM, yyyy") },
 ]

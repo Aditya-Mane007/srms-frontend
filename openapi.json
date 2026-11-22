@@ -5172,7 +5172,30 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/Employee"
+                        "allOf": [
+                          {
+                            "$ref": "#/components/schemas/Employee"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "site": {
+                                "type": "object",
+                                "properties": {
+                                  "siteCode": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "siteCode"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "site"
+                            ]
+                          }
+                        ]
                       }
                     },
                     "meta": {
@@ -5327,7 +5350,30 @@
                     "data": {
                       "type": "array",
                       "items": {
-                        "$ref": "#/components/schemas/Employee"
+                        "allOf": [
+                          {
+                            "$ref": "#/components/schemas/Employee"
+                          },
+                          {
+                            "type": "object",
+                            "properties": {
+                              "site": {
+                                "type": "object",
+                                "properties": {
+                                  "siteCode": {
+                                    "type": "string"
+                                  }
+                                },
+                                "required": [
+                                  "siteCode"
+                                ]
+                              }
+                            },
+                            "required": [
+                              "site"
+                            ]
+                          }
+                        ]
                       }
                     },
                     "meta": {

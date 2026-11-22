@@ -2920,7 +2920,11 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            data: components["schemas"]["Employee"][];
+                            data: (components["schemas"]["Employee"] & {
+                                site: {
+                                    siteCode: string;
+                                };
+                            })[];
                             meta: components["schemas"]["ListMeta"];
                         };
                     };
@@ -3005,7 +3009,11 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
-                            data: components["schemas"]["Employee"][];
+                            data: (components["schemas"]["Employee"] & {
+                                site: {
+                                    siteCode: string;
+                                };
+                            })[];
                             meta: components["schemas"]["ListMeta"];
                         };
                     };
