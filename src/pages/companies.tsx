@@ -187,8 +187,9 @@ export function CompanyPage() {
   const can = useCan()
   const { data: company, isPending } = useCompany(companyId)
   if (!company) return <Page crumbs={[{ label: "Companies", to: "/companies" }, { label: isPending ? "Loading…" : "Not found" }]}>{null}</Page>
+  const first = can("employees:read") ? "employees" : "clients"
   const t = sp.get("tab")
-  const tab = t === "masters" || (t === "employees" && can("employees:read")) ? t : "clients"
+  const tab = t === "masters" || t === "clients" ? t : first
 
   return (
     <Page bare crumbs={[{ label: "Companies", to: "/companies" }, { label: company.name }]}>
@@ -227,7 +228,7 @@ export function CompanyPage() {
 
         <Tabs
           value={tab}
-          onValueChange={(v) => setSp((p) => (v === "clients" ? p.delete("tab") : p.set("tab", String(v)), p), { replace: true })}
+          onValueChange={(v) => setSp((p) => (v === first ? p.delete("tab") : p.set("tab", String(v)), p), { replace: true })}
           className="flex min-w-0 flex-col gap-3 lg:min-h-0"
         >
           <TabsList variant="line">
