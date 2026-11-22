@@ -1,8 +1,9 @@
+import type { components } from "@/api/schema"
 import { useCan } from "@/access"
 import { useState } from "react"
 import { Link, useNavigate, useParams, useSearchParams } from "react-router"
 import { useQueryClient } from "@tanstack/react-query"
-import { Building2Icon, EyeIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, PowerIcon, Settings2Icon, UploadIcon, UsersIcon, BriefcaseIcon, MapPinIcon } from "lucide-react"
+import { Building2Icon, EyeIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, PowerIcon, Settings2Icon, UploadIcon, UsersIcon, BriefcaseIcon, IdCardIcon, MapPinIcon } from "lucide-react"
 import { toast } from "sonner"
 import { api, must, type Schemas } from "@/api/client"
 import { useClient, useCompany, useSelection } from "@/data"
@@ -139,7 +140,7 @@ function CompanyDialogs({ c, dialog, setDialog }: { c: Schemas["Company"]; dialo
           ? "It moves to the Inactive list. Its clients, sites and history are kept, and you can activate it again."
           : "It moves back to the Active list."}
       </ConfirmDialog>
-      <EmployeeSeedDialog companyId={c.id} open={dialog === "seed"} onOpenChange={close} onSaved={() => qc.invalidateQueries({ queryKey: ["sites"] })} />
+      <EmployeeSeedDialog companyId={c.id} open={dialog === "seed"} onOpenChange={close} onSaved={() => Promise.all([qc.invalidateQueries({ queryKey: ["sites"] }), qc.invalidateQueries({ queryKey: ["employees", c.id] })])} />
     </>
   )
 }
@@ -186,7 +187,8 @@ export function CompanyPage() {
   const can = useCan()
   const { data: company, isPending } = useCompany(companyId)
   if (!company) return <Page crumbs={[{ label: "Companies", to: "/companies" }, { label: isPending ? "Loading…" : "Not found" }]}>{null}</Page>
-  const tab = sp.get("tab") === "masters" ? "masters" : "clients"
+  const t = sp.get("tab")
+  const tab = t === "masters" || (t === "employees" && can("employees:read")) ? t : "clients"
 
   return (
     <Page bare crumbs={[{ label: "Companies", to: "/companies" }, { label: company.name }]}>
@@ -229,6 +231,11 @@ export function CompanyPage() {
           className="flex min-w-0 flex-col gap-3 lg:min-h-0"
         >
           <TabsList variant="line">
+            {can("employees:read") && (
+              <TabsTrigger value="employees" className="flex-none">
+                <IdCardIcon aria-hidden /> Employees
+              </TabsTrigger>
+            )}
             <TabsTrigger value="clients" className="flex-none">
               <UsersIcon aria-hidden /> Clients
             </TabsTrigger>
@@ -236,6 +243,20 @@ export function CompanyPage() {
               <Settings2Icon aria-hidden /> Masters
             </TabsTrigger>
           </TabsList>
+          {can("employees:read") && (
+            <TabsContent value="employees" className="flex h-[70svh] flex-col rounded-xl border bg-card p-4 lg:h-auto lg:min-h-0 lg:flex-1">
+              <DataTable
+                id="employees"
+                height="fill"
+                queryKey={["employees", company.id]}
+                fetch={(query) => api.GET("/companies/{id}/employees", { params: { path: { id: company.id }, query } })}
+                rowKey={(e) => e.id}
+                searchLabel="Search employees"
+                empty="No employees yet."
+                columns={employeeColumns}
+              />
+            </TabsContent>
+          )}
           {/* fixed-height box; the table fills it and scrolls its rows */}
           <TabsContent value="clients" className="flex h-[70svh] flex-col rounded-xl border bg-card p-4 lg:h-auto lg:min-h-0 lg:flex-1">
             <DataTable
@@ -319,6 +340,14 @@ function ClientCreateFields() {
   )
 }
 
+type Employee = components["schemas"]["Employee"]
+const employeeColumns = [
+  { key: "empCode", label: "Code", className: "font-mono", cell: (e: Employee) => e.empCode },
+  { key: "name", label: "Name", cell: (e: Employee) => e.name },
+  { key: "designation", label: "Designation", cell: (e: Employee) => e.designation },
+  { key: "joinDate", label: "Joined", cell: (e: Employee) => e.joinDate },
+]
+
 export function ClientPage() {
   const { companyId = "", clientId = "" } = useParams()
   const qc = useQueryClient()
@@ -399,9 +428,17 @@ export function ClientPage() {
               <MapPinIcon aria-hidden /> Sites
             </TabsTrigger>
           </TabsList>
-          {/* shortcut: placeholder until GET /companies/:id/employees exists */}
-          <TabsContent value="employees" className="rounded-xl border bg-card p-4 text-sm text-muted-foreground">
-            Employee list coming soon. To onboard existing employees, use Seed employees on the company page.
+          <TabsContent value="employees" className="flex h-[70svh] flex-col rounded-xl border bg-card p-4 lg:h-auto lg:min-h-0 lg:flex-1">
+            <DataTable
+              id="employees"
+              height="fill"
+              queryKey={["employees", companyId, client.id]}
+              fetch={(query) => api.GET("/clients/{id}/employees", { params: { path: { id: client.id }, query } })}
+              rowKey={(e) => e.id}
+              searchLabel="Search employees"
+              empty="No employees at this client's sites."
+              columns={employeeColumns}
+            />
           </TabsContent>
           <TabsContent value="sites" className="flex h-[70svh] flex-col rounded-xl border bg-card p-4 lg:h-auto lg:min-h-0 lg:flex-1">
             <DataTable
