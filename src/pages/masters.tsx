@@ -3,7 +3,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 import { api, must } from "@/api/client"
-import { useCompanies, useSkillCategories } from "@/data"
+import { useCompany, useSkillCategories } from "@/data"
 import { DataTable } from "@/components/data-table"
 import { FormDialog } from "@/components/form-dialog"
 import { DateField, SelectField, TextField } from "@/components/fields"
@@ -37,8 +37,7 @@ function Section({ id, children }: { id: string; children: React.ReactNode }) {
 
 export function MastersPage() {
   const { companyId = "" } = useParams()
-  const { data: companies } = useCompanies()
-  const company = companies?.find((c) => c.id === companyId)
+  const { data: company } = useCompany(companyId)
   return (
     <Page crumbs={[{ label: "Companies", to: "/companies" }, { label: company?.name ?? "…", to: `/companies/${companyId}` }, { label: "Masters" }]}>
       <Masters companyId={companyId} />

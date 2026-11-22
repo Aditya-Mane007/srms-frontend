@@ -5,6 +5,21 @@ import { api, must } from "@/api/client"
 export const useCompanies = () =>
   useQuery({ queryKey: ["companies"], queryFn: () => must(api.GET("/companies")).then((r) => r.data) })
 
+// under ["companies"] / ["clients", companyId] so existing invalidations refresh them too
+export const useCompany = (id?: string) =>
+  useQuery({
+    queryKey: ["companies", id],
+    enabled: !!id,
+    queryFn: () => must(api.GET("/companies/{id}", { params: { path: { id: id! } } })),
+  })
+
+export const useClient = (companyId?: string, id?: string) =>
+  useQuery({
+    queryKey: ["clients", companyId, id],
+    enabled: !!id,
+    queryFn: () => must(api.GET("/clients/{id}", { params: { path: { id: id! } } })),
+  })
+
 export const useClients = (companyId?: string) =>
   useQuery({
     queryKey: ["clients", companyId],

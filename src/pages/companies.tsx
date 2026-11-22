@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query"
 import { Building2Icon, EyeIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, PowerIcon, Settings2Icon, UploadIcon, UsersIcon, BriefcaseIcon, MapPinIcon } from "lucide-react"
 import { toast } from "sonner"
 import { api, must, type Schemas } from "@/api/client"
-import { useClients, useCompanies, useSelection } from "@/data"
+import { useClient, useCompany, useSelection } from "@/data"
 import { EmployeeSeedDialog } from "@/components/employee-seed"
 import { DataTable, StatusBadge } from "@/components/data-table"
 import { ConfirmDialog, FormDialog } from "@/components/form-dialog"
@@ -184,9 +184,8 @@ export function CompanyPage() {
   const [sp, setSp] = useSearchParams()
   const [dialog, setDialog] = useState<CompanyDialog>(null)
   const can = useCan()
-  const { data: companies } = useCompanies()
-  const company = companies?.find((c) => c.id === companyId)
-  if (!company) return <Page crumbs={[{ label: "Companies", to: "/companies" }, { label: companies ? "Not found" : "Loading…" }]}>{null}</Page>
+  const { data: company, isPending } = useCompany(companyId)
+  if (!company) return <Page crumbs={[{ label: "Companies", to: "/companies" }, { label: isPending ? "Loading…" : "Not found" }]}>{null}</Page>
   const tab = sp.get("tab") === "masters" ? "masters" : "clients"
 
   return (
@@ -326,12 +325,11 @@ export function ClientPage() {
   const [sp, setSp] = useSearchParams()
   const [dialog, setDialog] = useState<"edit" | "toggle" | null>(null)
   const can = useCan()
-  const { data: companies } = useCompanies()
-  const { data: clients } = useClients(companyId)
-  const company = companies?.find((c) => c.id === companyId)
-  const client = clients?.find((c) => c.id === clientId)
+  const { data: company } = useCompany(companyId)
+  const { data: found, isPending } = useClient(companyId, clientId)
+  const client = found?.companyId === companyId ? found : undefined
   const base = [{ label: "Companies", to: "/companies" }, { label: company?.name ?? "…", to: `/companies/${companyId}` }, { label: "Clients", to: `/companies/${companyId}` }]
-  if (!client) return <Page crumbs={[...base, { label: clients ? "Not found" : "Loading…" }]}>{null}</Page>
+  if (!client) return <Page crumbs={[...base, { label: isPending ? "Loading…" : "Not found" }]}>{null}</Page>
   const refresh = () => Promise.all([qc.invalidateQueries({ queryKey: ["clients", companyId] }), qc.invalidateQueries({ queryKey: ["sites", clientId] })])
   const tab = sp.get("tab") === "sites" ? "sites" : "employees"
   const close = (o: boolean) => !o && setDialog(null)
