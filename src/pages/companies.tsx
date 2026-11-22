@@ -1,3 +1,4 @@
+import { format, parseISO } from "date-fns"
 import type { components } from "@/api/schema"
 import { useCan } from "@/access"
 import { useState } from "react"
@@ -346,7 +347,7 @@ const employeeColumns = [
   { key: "empCode", label: "Code", className: "font-mono", cell: (e: Employee) => e.empCode },
   { key: "name", label: "Name", cell: (e: Employee) => e.name },
   { key: "designation", label: "Designation", cell: (e: Employee) => e.designation },
-  { key: "joinDate", label: "Joined", cell: (e: Employee) => e.joinDate },
+  { key: "joinDate", label: "Joined", cell: (e: Employee) => format(parseISO(e.joinDate), "dd MMM, yyyy") },
 ]
 
 export function ClientPage() {
