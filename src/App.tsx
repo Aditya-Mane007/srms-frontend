@@ -31,6 +31,8 @@ export default function App() {
               <Route path="/forgot-password" element={<ForgotPasswordPage />} />
               <Route path="/reset-password" element={<ResetPasswordPage />} />
               <Route path="/accept-invite" element={<AcceptInvitePage />} />
+              {/* outside AppLayout: full-screen, no nav; also where routes without access land */}
+              <Route path="*" element={<NotFoundPage />} />
               <Route element={<AppLayout />}>
                 <Route index element={<DashboardPage />} />
                 <Route path="companies" element={<RequireCan any={["companies:read"]}><CompaniesPage /></RequireCan>} />
@@ -39,7 +41,6 @@ export default function App() {
                 <Route path="companies/:companyId/clients/:clientId" element={<RequireCan any={["clients:read"]}><ClientPage /></RequireCan>} />
                 <Route path="users" element={<RequireCan any={["users:manage", "companies:assign"]}><UsersPage /></RequireCan>} />
                 <Route path="roles" element={<RequireCan any={["roles:manage", "users:manage"]}><RolesPage /></RequireCan>} />
-                <Route path="*" element={<NotFoundPage />} />
               </Route>
             </Routes>
           </BrowserRouter>
