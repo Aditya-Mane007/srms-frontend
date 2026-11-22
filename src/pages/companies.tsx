@@ -14,7 +14,6 @@ import { ConfirmDialog, FormDialog } from "@/components/form-dialog"
 import { PlaceFields, SiteDetailFields, TextField } from "@/components/fields"
 import { InfoPanel, ProfileHeader, profileGrid } from "@/components/profile"
 import { optStr, Page, str } from "@/components/layout"
-import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Masters } from "@/pages/masters"
 import { Button } from "@/components/ui/button"
@@ -267,7 +266,7 @@ export function CompanyPage() {
                   need={["clients:write"]}
                   trigger={<><PlusIcon /> Add client</>}
                   title="Add client"
-                  description="Add a client of this company and its first (default) site."
+                  description="Add a client of this company. Add its sites on the client's page."
                   onSave={async (d) => {
                     await must(
                       api.POST("/companies/{id}/clients", {
@@ -276,21 +275,11 @@ export function CompanyPage() {
                           code: str(d, "code"),
                           name: str(d, "clientName"),
                           address: optStr(d, "clientAddress"),
-                          site: {
-                            stateId: str(d, "stateId"),
-                            cityId: str(d, "cityId"),
-                            location: str(d, "location"),
-                            ...(str(d, "name") && { name: str(d, "name") }),
-                            address: optStr(d, "address"),
-                            natureOfWork: optStr(d, "natureOfWork"),
-                            workingHours: optStr(d, "workingHours"),
-                            restInterval: optStr(d, "restInterval"),
-                          },
                         },
                       }),
                     )
                     await qc.invalidateQueries({ queryKey: ["clients", company.id] })
-                    toast.success("Client and its default site added")
+                    toast.success("Client added")
                   }}
                 >
                   <ClientCreateFields />
@@ -335,9 +324,6 @@ function ClientCreateFields() {
       <TextField name="code" label="Client code" required pattern="[A-Z0-9]{2,10}" value={code} onChange={(e) => setCode(e.target.value.toUpperCase())} hint="2–10 capital letters or digits. It starts every site code and can't change later." />
       <TextField name="clientName" label="Client name" required maxLength={500} />
       <TextField name="clientAddress" label="Client address" multiline />
-      <h3 className="pt-2 font-medium">Default site</h3>
-      <PlaceFields clientCode={code} />
-      <SiteDetailFields />
     </>
   )
 }
@@ -485,7 +471,7 @@ export function ClientPage() {
               empty="No sites yet."
               columns={[
                 { key: "siteCode", label: "Site code", className: "font-mono", cell: (s) => s.siteCode },
-                { key: "name", label: "Name", cell: (s) => <>{s.name} {s.isDefault && <Badge variant="outline">Default</Badge>}</> },
+                { key: "name", label: "Name", cell: (s) => s.name },
                 { key: "status", label: "Status", cell: (s) => status(s.active) },
               ]}
               actions={(s) => (

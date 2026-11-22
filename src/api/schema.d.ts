@@ -1949,7 +1949,7 @@ export interface paths {
             };
         };
         put?: never;
-        /** Create a client with its default site */
+        /** Create a client (no site; add sites separately) */
         post: {
             parameters: {
                 query?: never;
@@ -1965,19 +1965,6 @@ export interface paths {
                         code: string;
                         name: string;
                         address?: string | null;
-                        site: {
-                            /** Format: uuid */
-                            stateId: string;
-                            /** Format: uuid */
-                            cityId: string;
-                            location: string;
-                            name?: string;
-                            address?: string | null;
-                            natureOfWork?: string | null;
-                            workingHours?: string | null;
-                            restInterval?: string | null;
-                            active?: boolean;
-                        };
                     };
                 };
             };
@@ -1988,7 +1975,7 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["ClientWithSites"];
+                        "application/json": components["schemas"]["Client"];
                     };
                 };
                 /** @description Invalid request */
@@ -3451,13 +3438,9 @@ export interface components {
             natureOfWork: string | null;
             workingHours: string | null;
             restInterval: string | null;
-            isDefault: boolean;
             active: boolean;
             /** Format: date-time */
             createdAt: string;
-        };
-        ClientWithSites: components["schemas"]["Client"] & {
-            sites: components["schemas"]["Site"][];
         };
         SkillCategory: {
             /** Format: uuid */

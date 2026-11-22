@@ -561,9 +561,6 @@
               "null"
             ]
           },
-          "isDefault": {
-            "type": "boolean"
-          },
           "active": {
             "type": "boolean"
           },
@@ -587,30 +584,8 @@
           "natureOfWork",
           "workingHours",
           "restInterval",
-          "isDefault",
           "active",
           "createdAt"
-        ]
-      },
-      "ClientWithSites": {
-        "allOf": [
-          {
-            "$ref": "#/components/schemas/Client"
-          },
-          {
-            "type": "object",
-            "properties": {
-              "sites": {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/Site"
-                }
-              }
-            },
-            "required": [
-              "sites"
-            ]
-          }
         ]
       },
       "SkillCategory": {
@@ -3471,7 +3446,7 @@
         }
       },
       "post": {
-        "summary": "Create a client with its default site",
+        "summary": "Create a client (no site; add sites separately)",
         "security": [
           {
             "bearer": []
@@ -3511,75 +3486,11 @@
                     ],
                     "minLength": 1,
                     "maxLength": 500
-                  },
-                  "site": {
-                    "type": "object",
-                    "properties": {
-                      "stateId": {
-                        "type": "string",
-                        "format": "uuid"
-                      },
-                      "cityId": {
-                        "type": "string",
-                        "format": "uuid"
-                      },
-                      "location": {
-                        "type": "string",
-                        "minLength": 1,
-                        "maxLength": 100
-                      },
-                      "name": {
-                        "type": "string",
-                        "minLength": 1,
-                        "maxLength": 500
-                      },
-                      "address": {
-                        "type": [
-                          "string",
-                          "null"
-                        ],
-                        "minLength": 1,
-                        "maxLength": 500
-                      },
-                      "natureOfWork": {
-                        "type": [
-                          "string",
-                          "null"
-                        ],
-                        "minLength": 1,
-                        "maxLength": 500
-                      },
-                      "workingHours": {
-                        "type": [
-                          "string",
-                          "null"
-                        ],
-                        "minLength": 1,
-                        "maxLength": 500
-                      },
-                      "restInterval": {
-                        "type": [
-                          "string",
-                          "null"
-                        ],
-                        "minLength": 1,
-                        "maxLength": 500
-                      },
-                      "active": {
-                        "type": "boolean"
-                      }
-                    },
-                    "required": [
-                      "stateId",
-                      "cityId",
-                      "location"
-                    ]
                   }
                 },
                 "required": [
                   "code",
-                  "name",
-                  "site"
+                  "name"
                 ]
               }
             }
@@ -3591,7 +3502,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ClientWithSites"
+                  "$ref": "#/components/schemas/Client"
                 }
               }
             }
