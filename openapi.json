@@ -3664,7 +3664,39 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Client"
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/Client"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "company": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid"
+                            },
+                            "code": {
+                              "type": "string"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "code",
+                            "name"
+                          ]
+                        }
+                      },
+                      "required": [
+                        "company"
+                      ]
+                    }
+                  ]
                 }
               }
             }

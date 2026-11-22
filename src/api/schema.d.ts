@@ -2060,7 +2060,14 @@ export interface paths {
                         [name: string]: unknown;
                     };
                     content: {
-                        "application/json": components["schemas"]["Client"];
+                        "application/json": components["schemas"]["Client"] & {
+                            company: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string;
+                                name: string;
+                            };
+                        };
                     };
                 };
                 /** @description Invalid request */

@@ -325,9 +325,9 @@ export function ClientPage() {
   const [sp, setSp] = useSearchParams()
   const [dialog, setDialog] = useState<"edit" | "toggle" | null>(null)
   const can = useCan()
-  const { data: company } = useCompany(companyId)
   const { data: found, isPending } = useClient(companyId, clientId)
   const client = found?.companyId === companyId ? found : undefined
+  const company = client?.company
   const base = [{ label: "Companies", to: "/companies" }, { label: company?.name ?? "…", to: `/companies/${companyId}` }, { label: "Clients", to: `/companies/${companyId}` }]
   if (!client) return <Page crumbs={[...base, { label: isPending ? "Loading…" : "Not found" }]}>{null}</Page>
   const refresh = () => Promise.all([qc.invalidateQueries({ queryKey: ["clients", companyId] }), qc.invalidateQueries({ queryKey: ["sites", clientId] })])
