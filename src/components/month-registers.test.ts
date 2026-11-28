@@ -27,3 +27,12 @@ describe("fileSize", () => {
     expect(fileSize(3 * 1024 * 1024)).toBe("3.0 MB")
   })
 })
+
+describe("issuesFrom", () => {
+  it("reads the issue file, or null when there is none", async () => {
+    const { issuesFrom } = await import("./month-registers")
+    expect(issuesFrom({ issueFile: "QUJD", issueFileName: "pay_issues.xlsx" }, 3)).toEqual({ file: "QUJD", name: "pay_issues.xlsx", warnings: 3 })
+    expect(issuesFrom({ issueFile: null })).toBeNull()
+    expect(issuesFrom(undefined)).toBeNull()
+  })
+})

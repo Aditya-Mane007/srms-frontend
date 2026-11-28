@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useSearchParams } from "react-router"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { format, parse, subMonths } from "date-fns"
-import { ActivityIcon, CheckCircle2Icon, CircleDashedIcon, DownloadIcon, LoaderIcon, XCircleIcon } from "lucide-react"
+import { ActivityIcon, CheckCircle2Icon, CircleDashedIcon, DownloadIcon, FileWarningIcon, LoaderIcon, XCircleIcon } from "lucide-react"
 import { toast } from "sonner"
 import { api, must, send } from "@/api/client"
 import type { paths } from "@/api/schema"
@@ -15,7 +15,7 @@ import { SkeletonRows } from "@/components/skeletons"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 // shortcut: hand-typed until the backend's generation routes are merged and in openapi.json; then use api.* types
-type Upload = { rows: number }
+type Upload = { rows: number; warnings?: number; issueFile?: string | null; issueFileName?: string }
 type Slot = "paysheet" | "attendance" | "leave"
 const SLOTS: [Slot, string][] = [["paysheet", "Paysheet"], ["attendance", "Attendance"], ["leave", "Leave"]]
 const MAX = 20 * 1024 * 1024
@@ -40,6 +40,29 @@ async function save(res: Response, fallback: string): Promise<string> {
   URL.revokeObjectURL(url)
   return name
 }
+
+type Issues = { file: string; name: string; warnings?: number }
+const XLSX_TYPE = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+
+/** The issue file from an upload response or a rejected request's `error.details`, if any. */
+export function issuesFrom(x: unknown, warnings?: number): Issues | null {
+  const d = x as { issueFile?: string | null; issueFileName?: string } | undefined
+  return d?.issueFile ? { file: d.issueFile, name: d.issueFileName ?? "issues.xlsx", warnings } : null
+}
+const detailsOf = (e: unknown) => (e as { body?: { error?: { details?: unknown } } }).body?.error?.details
+
+/** Saves the base64 issue workbook. */
+function saveIssues(i: Issues) {
+  const url = URL.createObjectURL(new Blob([Uint8Array.from(atob(i.file), (c) => c.charCodeAt(0))], { type: XLSX_TYPE }))
+  Object.assign(document.createElement("a"), { href: url, download: i.name }).click()
+  URL.revokeObjectURL(url)
+}
+
+const IssuesButton = ({ i }: { i: Issues }) => (
+  <Button variant="outline" size="sm" className="self-start" onClick={() => saveIssues(i)}>
+    <FileWarningIcon /> Download issues
+  </Button>
+)
 
 /** 1536 -> "1.5 KB" */
 export const fileSize = (b: number) => (b < 1024 ? `${b} B` : b < 1024 ** 2 ? `${(b / 1024).toFixed(1)} KB` : `${(b / 1024 ** 2).toFixed(1)} MB`)
@@ -183,6 +206,15 @@ export function MonthRegisters({ companyId, companyCode }: { companyId: string; 
   })
   const [busy, setBusy] = useState<Slot | "generate" | null>(null)
   const [problems, setProblems] = useState<Partial<Record<Slot, string>>>({})
+  // issue files from this browser's last upload/generate per month; the server does not keep them
+  const [issueMap, setIssueMap] = useState<Record<string, Issues | null>>({})
+  const issues = (k: Slot | "generate") => issueMap[`${month}:${k}`]
+  const setIssues = (k: Slot | "generate", i: Issues | null) => setIssueMap((m) => ({ ...m, [`${month}:${k}`]: i }))
+  /** Records the issue file of a 422 before the error goes on to the toast. */
+  const keepIssues = (k: Slot | "generate") => (e: unknown) => {
+    setIssues(k, issuesFrom(detailsOf(e)))
+    throw e
+  }
   const done = (s: Slot) => uploads?.find((u) => u.slot === s)
   const allIn = SLOTS.every(([s]) => done(s))
   const [steps, setSteps] = useState<Step[]>([])
@@ -209,10 +241,12 @@ export function MonthRegisters({ companyId, companyCode }: { companyId: string; 
         method: "PUT",
         headers: { "Content-Type": f.type || "application/octet-stream" },
         body: f,
-      })
+      }).catch(keepIssues(slot))
+      const out = (await res.json()) as Upload
+      setIssues(slot, out.warnings ? issuesFrom(out, out.warnings) : null)
       await qc.invalidateQueries({ queryKey: key })
       toast.success(`${f.name} uploaded`)
-      return `${((await res.json()) as Upload).rows} rows`
+      return `${out.rows} rows${out.warnings ? `, ${out.warnings} warning${out.warnings > 1 ? "s" : ""}` : ""}`
     })
     setBusy(null)
   }
@@ -220,7 +254,9 @@ export function MonthRegisters({ companyId, companyCode }: { companyId: string; 
   const generate = async () => {
     setBusy("generate")
     await track(`Generating registers for ${monthLabel(month)}`, async () => {
-      const name = await save(await send(`${base}/generate`, { method: "POST" }), `${companyCode}_${month}_registers.zip`)
+      const res = await send(`${base}/generate`, { method: "POST" }).catch(keepIssues("generate"))
+      setIssues("generate", null)
+      const name = await save(res, `${companyCode}_${month}_registers.zip`)
       await qc.invalidateQueries({ queryKey: ["generations", companyId] })
       toast.success(`${name} downloaded`)
       return `Saved ${name}`
@@ -245,6 +281,7 @@ export function MonthRegisters({ companyId, companyCode }: { companyId: string; 
             {busy === "generate" ? "Generating…" : "Generate registers"}
           </Button>
         )}
+        {issues("generate") && <IssuesButton i={issues("generate")!} />}
       </div>
 
       <div className="grid gap-4 md:grid-cols-3">
@@ -277,6 +314,18 @@ export function MonthRegisters({ companyId, companyCode }: { companyId: string; 
                   />
                 ))}
               <ErrorText error={problems[slot]} />
+              {issues(slot) && (
+                <div className="flex flex-col gap-2">
+                  {issues(slot)!.warnings ? (
+                    <p className="text-sm text-amber-700 dark:text-amber-400">
+                      {issues(slot)!.warnings} warning{issues(slot)!.warnings! > 1 ? "s" : ""} in this file
+                    </p>
+                  ) : (
+                    <p className="text-sm text-destructive">Not saved: fix the problems in the issue file and upload again.</p>
+                  )}
+                  <IssuesButton i={issues(slot)!} />
+                </div>
+              )}
             </section>
           )
         })}

@@ -57,7 +57,11 @@ export const api = createClient<paths>({ baseUrl: BASE, fetch: authFetch })
 /** Signed-in fetch for raw file bodies (uploads, ZIP downloads); throws the API's error message. */
 export async function send(path: string, init?: RequestInit): Promise<Response> {
   const res = await authFetch(new Request(BASE + path, init))
-  if (!res.ok) throw new Error(errorMessage(await res.json().catch(() => undefined)))
+  if (!res.ok) {
+    const body = await res.json().catch(() => undefined)
+    // keeps the error body so callers can read `error.details` (e.g. an issue file)
+    throw Object.assign(new Error(errorMessage(body)), { body })
+  }
   return res
 }
 
