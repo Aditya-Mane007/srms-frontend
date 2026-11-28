@@ -3288,6 +3288,579 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/states/{code}/registers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Common and own register templates of a state */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                    offset?: number | null;
+                    q?: string;
+                    status?: "active" | "inactive";
+                    /** @description a field of the row; each route lists the ones it allows */
+                    sort?: string;
+                    order?: "asc" | "desc";
+                };
+                header?: never;
+                path: {
+                    code: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: components["schemas"]["RegisterSummary"][];
+                            meta: components["schemas"]["ListMeta"];
+                        };
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not signed in, or PERMISSIONS_STALE (refresh and retry) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Missing permission */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not found, or another company's data */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        /** Create a tenant register (Super Admin) */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    code: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        code: string;
+                        name: string;
+                        definition: {
+                            /**
+                             * @default employee_rows
+                             * @enum {string}
+                             */
+                            layout?: "employee_rows" | "sheet_per_employee";
+                            /**
+                             * @default month
+                             * @enum {string}
+                             */
+                            population?: "month" | "all";
+                            title: string[];
+                            /** @default [] */
+                            rules?: string[];
+                            /** @default [] */
+                            headers?: {
+                                left?: {
+                                    label: string;
+                                    /** @default  */
+                                    value?: string;
+                                };
+                                right?: {
+                                    label: string;
+                                    /** @default  */
+                                    value?: string;
+                                };
+                            }[];
+                            headerTable?: {
+                                columns: string[];
+                                rows: {
+                                    label: string;
+                                    values: string[];
+                                }[];
+                            };
+                            columns: {
+                                heading: string;
+                                group?: string;
+                                value: {
+                                    src: string;
+                                    col: string;
+                                } | {
+                                    lit: string;
+                                } | {
+                                    /** @enum {string} */
+                                    fn: "rowNumber";
+                                } | {
+                                    /** @enum {string} */
+                                    fn: "days";
+                                } | {
+                                    add: {
+                                        src: string;
+                                        col: string;
+                                    }[];
+                                    /** @default [] */
+                                    sub?: {
+                                        src: string;
+                                        col: string;
+                                    }[];
+                                } | {
+                                    /** @enum {boolean} */
+                                    blank: true;
+                                };
+                                /**
+                                 * @default text
+                                 * @enum {string}
+                                 */
+                                format?: "text" | "number" | "money" | "date";
+                                width?: number;
+                                /** @default false */
+                                total?: boolean;
+                                blankAs?: string;
+                            }[];
+                            /** @default false */
+                            numberRow?: boolean;
+                            /** @default false */
+                            totals?: boolean;
+                            nilRow?: string;
+                            theme?: {
+                                font?: string;
+                                title?: {
+                                    size?: number;
+                                    bold?: boolean;
+                                };
+                                headers?: {
+                                    size?: number;
+                                    bold?: boolean;
+                                };
+                                headings?: {
+                                    size?: number;
+                                    bold?: boolean;
+                                };
+                                body?: {
+                                    size?: number;
+                                    bold?: boolean;
+                                };
+                                totals?: {
+                                    size?: number;
+                                    bold?: boolean;
+                                };
+                            };
+                            /** @default {} */
+                            page?: {
+                                /**
+                                 * @default auto
+                                 * @enum {string}
+                                 */
+                                size?: "auto" | "A4" | "A3";
+                                /**
+                                 * @default landscape
+                                 * @enum {string}
+                                 */
+                                orientation?: "landscape" | "portrait";
+                            };
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Register"];
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not signed in, or PERMISSIONS_STALE (refresh and retry) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Missing permission */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not found, or another company's data */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/registers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One register template with its definition */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Register"];
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not signed in, or PERMISSIONS_STALE (refresh and retry) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Missing permission */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not found, or another company's data */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        /** Delete a tenant register (Super Admin) */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                204: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content?: never;
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not signed in, or PERMISSIONS_STALE (refresh and retry) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Missing permission */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not found, or another company's data */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /** Update a tenant register (Super Admin; common ones are read-only) */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        definition?: {
+                            /**
+                             * @default employee_rows
+                             * @enum {string}
+                             */
+                            layout?: "employee_rows" | "sheet_per_employee";
+                            /**
+                             * @default month
+                             * @enum {string}
+                             */
+                            population?: "month" | "all";
+                            title: string[];
+                            /** @default [] */
+                            rules?: string[];
+                            /** @default [] */
+                            headers?: {
+                                left?: {
+                                    label: string;
+                                    /** @default  */
+                                    value?: string;
+                                };
+                                right?: {
+                                    label: string;
+                                    /** @default  */
+                                    value?: string;
+                                };
+                            }[];
+                            headerTable?: {
+                                columns: string[];
+                                rows: {
+                                    label: string;
+                                    values: string[];
+                                }[];
+                            };
+                            columns: {
+                                heading: string;
+                                group?: string;
+                                value: {
+                                    src: string;
+                                    col: string;
+                                } | {
+                                    lit: string;
+                                } | {
+                                    /** @enum {string} */
+                                    fn: "rowNumber";
+                                } | {
+                                    /** @enum {string} */
+                                    fn: "days";
+                                } | {
+                                    add: {
+                                        src: string;
+                                        col: string;
+                                    }[];
+                                    /** @default [] */
+                                    sub?: {
+                                        src: string;
+                                        col: string;
+                                    }[];
+                                } | {
+                                    /** @enum {boolean} */
+                                    blank: true;
+                                };
+                                /**
+                                 * @default text
+                                 * @enum {string}
+                                 */
+                                format?: "text" | "number" | "money" | "date";
+                                width?: number;
+                                /** @default false */
+                                total?: boolean;
+                                blankAs?: string;
+                            }[];
+                            /** @default false */
+                            numberRow?: boolean;
+                            /** @default false */
+                            totals?: boolean;
+                            nilRow?: string;
+                            theme?: {
+                                font?: string;
+                                title?: {
+                                    size?: number;
+                                    bold?: boolean;
+                                };
+                                headers?: {
+                                    size?: number;
+                                    bold?: boolean;
+                                };
+                                headings?: {
+                                    size?: number;
+                                    bold?: boolean;
+                                };
+                                body?: {
+                                    size?: number;
+                                    bold?: boolean;
+                                };
+                                totals?: {
+                                    size?: number;
+                                    bold?: boolean;
+                                };
+                            };
+                            /** @default {} */
+                            page?: {
+                                /**
+                                 * @default auto
+                                 * @enum {string}
+                                 */
+                                size?: "auto" | "A4" | "A3";
+                                /**
+                                 * @default landscape
+                                 * @enum {string}
+                                 */
+                                orientation?: "landscape" | "portrait";
+                            };
+                        };
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Register"];
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not signed in, or PERMISSIONS_STALE (refresh and retry) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Missing permission */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not found, or another company's data */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -3538,6 +4111,139 @@ export interface components {
             skipped: string[];
             /** @description site codes created for new locations */
             newSites: string[];
+        };
+        RegisterSummary: {
+            /** Format: uuid */
+            id: string;
+            /** Format: uuid */
+            tenantId: string | null;
+            /** Format: uuid */
+            stateId: string;
+            code: string;
+            name: string;
+            active: boolean;
+            /** @description true = shared state register, read-only */
+            common: boolean;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        Register: components["schemas"]["RegisterSummary"] & {
+            definition: {
+                /**
+                 * @default employee_rows
+                 * @enum {string}
+                 */
+                layout: "employee_rows" | "sheet_per_employee";
+                /**
+                 * @default month
+                 * @enum {string}
+                 */
+                population: "month" | "all";
+                title: string[];
+                /** @default [] */
+                rules: string[];
+                /** @default [] */
+                headers: {
+                    left?: {
+                        label: string;
+                        /** @default  */
+                        value: string;
+                    };
+                    right?: {
+                        label: string;
+                        /** @default  */
+                        value: string;
+                    };
+                }[];
+                headerTable?: {
+                    columns: string[];
+                    rows: {
+                        label: string;
+                        values: string[];
+                    }[];
+                };
+                columns: {
+                    heading: string;
+                    group?: string;
+                    value: {
+                        src: string;
+                        col: string;
+                    } | {
+                        lit: string;
+                    } | {
+                        /** @enum {string} */
+                        fn: "rowNumber";
+                    } | {
+                        /** @enum {string} */
+                        fn: "days";
+                    } | {
+                        add: {
+                            src: string;
+                            col: string;
+                        }[];
+                        /** @default [] */
+                        sub: {
+                            src: string;
+                            col: string;
+                        }[];
+                    } | {
+                        /** @enum {boolean} */
+                        blank: true;
+                    };
+                    /**
+                     * @default text
+                     * @enum {string}
+                     */
+                    format: "text" | "number" | "money" | "date";
+                    width?: number;
+                    /** @default false */
+                    total: boolean;
+                    blankAs?: string;
+                }[];
+                /** @default false */
+                numberRow: boolean;
+                /** @default false */
+                totals: boolean;
+                nilRow?: string;
+                theme?: {
+                    font?: string;
+                    title?: {
+                        size?: number;
+                        bold?: boolean;
+                    };
+                    headers?: {
+                        size?: number;
+                        bold?: boolean;
+                    };
+                    headings?: {
+                        size?: number;
+                        bold?: boolean;
+                    };
+                    body?: {
+                        size?: number;
+                        bold?: boolean;
+                    };
+                    totals?: {
+                        size?: number;
+                        bold?: boolean;
+                    };
+                };
+                /** @default {} */
+                page: {
+                    /**
+                     * @default auto
+                     * @enum {string}
+                     */
+                    size: "auto" | "A4" | "A3";
+                    /**
+                     * @default landscape
+                     * @enum {string}
+                     */
+                    orientation: "landscape" | "portrait";
+                };
+            };
         };
     };
     responses: never;

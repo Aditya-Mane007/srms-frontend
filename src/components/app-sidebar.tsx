@@ -45,7 +45,7 @@ const nav: { title: string; to?: string; icon: typeof ShieldIcon; need?: string[
   { title: "Dashboard", to: "/", icon: LayoutDashboardIcon },
   { title: "Companies", to: "/companies", icon: BuildingIcon, need: ["companies:read"] },
   { title: "Months", icon: CalendarIcon },
-  { title: "Templates", icon: FileSpreadsheetIcon },
+  { title: "Registers", to: "/registers", icon: FileSpreadsheetIcon },
 ]
 
 // Identity and access: grouped under one collapsible "IAM" item
