@@ -47,7 +47,7 @@ function PermissionFields({ role }: { role?: Role }) {
   const set = (ps: string[], on: boolean) =>
     setSel((s) => {
       const n = new Set(s)
-      for (const p of ps) if (held(p)) on ? n.add(p) : n.delete(p)
+      for (const p of ps) if (held(p)) n[on ? "add" : "delete"](p)
       return n
     })
   const shown = catalog.filter((p) => p.replace("_", " ").includes(q.toLowerCase()))

@@ -29,7 +29,7 @@ function PickList({ name, label, items, defaultValues, hint }: { name: string; l
   const set = (vs: string[], on: boolean) =>
     setSel((s) => {
       const n = new Set(s)
-      for (const v of vs) on ? n.add(v) : n.delete(v)
+      for (const v of vs) n[on ? "add" : "delete"](v)
       return n
     })
   const shown = items

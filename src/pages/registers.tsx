@@ -18,8 +18,9 @@ import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
-type Def = Schemas["Register"]["definition"]
+type Def = Extract<Schemas["Register"]["definition"], { columns: unknown }>
 type Col = Def["columns"][number]
+const WORD_POPULATION = { month: "Paid in the month", joiners: "Joined in the month", exits: "Left in the month", women: "Women employees" }
 
 const TypeBadge = ({ common }: { common: boolean }) =>
   common ? <Badge variant="secondary">Common</Badge> : <Badge variant="outline">Own</Badge>
@@ -153,15 +154,28 @@ export function RegisterPage() {
   const crumbs = [{ label: "Registers", to: "/registers" }, ...(state ? [{ label: state.name, to: `/registers?state=${state.code}` }] : [])]
   if (!r) return <Page crumbs={[...crumbs, { label: isPending ? "Loading…" : "Not found" }]}>{null}</Page>
   const d = r.definition
+  const head = <ProfileHeader icon={<FileSpreadsheetIcon />} name={r.name} code={r.code} actions={<RegisterActions r={r} stateCode={state?.code} />} />
+  const base: [string, ReactNode][] = [
+    ["Type", <TypeBadge key="t" common={r.common} />],
+    ["Status", <StatusBadge key="s" active={r.active} />],
+    ["State", state?.name],
+  ]
+  if (!("columns" in d))
+    return (
+      <Page bare crumbs={[...crumbs, { label: r.name }]}>
+        {head}
+        <div className={profileGrid}>
+          <InfoPanel items={[...base, ["Format", "Word template"], ["Employees", WORD_POPULATION[d.population]]]} />
+        </div>
+      </Page>
+    )
   return (
     <Page bare crumbs={[...crumbs, { label: r.name }]}>
-      <ProfileHeader icon={<FileSpreadsheetIcon />} name={r.name} code={r.code} actions={<RegisterActions r={r} stateCode={state?.code} />} />
+      {head}
       <div className={profileGrid}>
         <InfoPanel
           items={[
-            ["Type", <TypeBadge key="t" common={r.common} />],
-            ["Status", <StatusBadge key="s" active={r.active} />],
-            ["State", state?.name],
+            ...base,
             ["Layout", d.layout === "employee_rows" ? "One row per employee" : "One sheet per employee"],
             ["Employees", d.population === "month" ? "Paid in the month" : "All employees"],
             ["Page", d.page.size === "auto" ? "Auto" : `${d.page.size} ${d.page.orientation}`],
@@ -289,7 +303,7 @@ function AddRegister({ stateCode, stateName }: { stateCode: string; stateName: s
 
 type Dlg = "copy" | "toggle" | "delete" | null
 
-/** Common registers: Copy only. Own registers: Edit, Copy, Deactivate/Activate, Delete. Super Admin only. */
+/** Common registers: Copy only. Own registers: Edit (table registers only), Copy, Deactivate/Activate, Delete. Super Admin only. */
 function RegisterActions({ r, stateCode }: { r: Schemas["Register"]; stateCode?: string }) {
   const { data: me } = usePermissions()
   const navigate = useNavigate()
@@ -300,7 +314,7 @@ function RegisterActions({ r, stateCode }: { r: Schemas["Register"]; stateCode?:
   const done = () => qc.invalidateQueries({ queryKey: ["registers"] })
   return (
     <>
-      {!r.common && (
+      {!r.common && "columns" in r.definition && (
         <Button render={<Link to={`/registers/${r.id}/edit`} />}>
           <PencilIcon /> Edit
         </Button>

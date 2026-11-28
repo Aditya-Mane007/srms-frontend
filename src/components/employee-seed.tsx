@@ -79,7 +79,10 @@ export function EmployeeSeedDialog({ companyId, open, onOpenChange, onSaved }: {
   }
 
   const openChange = (o: boolean) => {
-    if (!o) (setState({ step: "pick" }), setError(null))
+    if (!o) {
+      setState({ step: "pick" })
+      setError(null)
+    }
     onOpenChange(o)
   }
   return (

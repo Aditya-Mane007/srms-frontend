@@ -3381,6 +3381,12 @@ export interface paths {
                     "application/json": {
                         code: string;
                         name: string;
+                        /**
+                         * @default TABLE
+                         * @enum {string}
+                         */
+                        kind?: "TABLE" | "WORD";
+                        /** @description Definition for TABLE, WordDefinition for WORD */
                         definition: {
                             /**
                              * @default employee_rows
@@ -3493,6 +3499,25 @@ export interface paths {
                                  * @enum {string}
                                  */
                                 orientation?: "landscape" | "portrait";
+                            };
+                        } | {
+                            /** @enum {string} */
+                            population: "month" | "joiners" | "exits" | "women";
+                            lines?: {
+                                earnings: {
+                                    label: string;
+                                    value: {
+                                        src: string;
+                                        col: string;
+                                    };
+                                }[];
+                                deductions: {
+                                    label: string;
+                                    value: {
+                                        src: string;
+                                        col: string;
+                                    };
+                                }[];
                             };
                         };
                     };
@@ -3693,6 +3718,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name?: string;
+                        /** @description Definition for TABLE, WordDefinition for WORD */
                         definition?: {
                             /**
                              * @default employee_rows
@@ -3806,6 +3832,25 @@ export interface paths {
                                  */
                                 orientation?: "landscape" | "portrait";
                             };
+                        } | {
+                            /** @enum {string} */
+                            population: "month" | "joiners" | "exits" | "women";
+                            lines?: {
+                                earnings: {
+                                    label: string;
+                                    value: {
+                                        src: string;
+                                        col: string;
+                                    };
+                                }[];
+                                deductions: {
+                                    label: string;
+                                    value: {
+                                        src: string;
+                                        col: string;
+                                    };
+                                }[];
+                            };
                         };
                         active?: boolean;
                     };
@@ -3859,6 +3904,559 @@ export interface paths {
                 };
             };
         };
+        trace?: never;
+    };
+    "/registers/{id}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download the .docx of a Word register */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The .docx */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/vnd.openxmlformats-officedocument.wordprocessingml.document": string;
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not signed in, or PERMISSIONS_STALE (refresh and retry) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Missing permission */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not found, or another company's data */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        /** Upload the .docx of a tenant Word register (Super Admin); placeholders are checked */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": string;
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Register"];
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not signed in, or PERMISSIONS_STALE (refresh and retry) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Missing permission */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not found, or another company's data */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/months/{month}/uploads/{slot}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Upload this month's paysheet, attendance or leave file (.xls/.xlsx); replaces the last one */
+        put: {
+            parameters: {
+                query?: {
+                    fileName?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                    /** @description YYYY-MM */
+                    month: string;
+                    slot: "paysheet" | "attendance" | "leave";
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/vnd.ms-excel": string;
+                };
+            };
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            slot: "paysheet" | "attendance" | "leave";
+                            fileName: string;
+                            rows: number;
+                            /** Format: date-time */
+                            uploadedAt: string;
+                        };
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not signed in, or PERMISSIONS_STALE (refresh and retry) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Missing permission */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not found, or another company's data */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/months/{month}/uploads": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The files uploaded for a company + month */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    /** @description YYYY-MM */
+                    month: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** @enum {string} */
+                                slot: "paysheet" | "attendance" | "leave";
+                                fileName: string;
+                                rows: number;
+                                /** Format: date-time */
+                                uploadedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not signed in, or PERMISSIONS_STALE (refresh and retry) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Missing permission */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not found, or another company's data */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/months/{month}/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate the month's table registers: ZIP with a folder per client, then per site, one .xlsx per register */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    /** @description YYYY-MM */
+                    month: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The ZIP */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/zip": string;
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not signed in, or PERMISSIONS_STALE (refresh and retry) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Missing permission */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not found, or another company's data */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/generations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Register history: every Generate for the company, newest first (optionally one month) */
+        get: {
+            parameters: {
+                query?: {
+                    /** @description YYYY-MM */
+                    month?: string;
+                };
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description OK */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            data: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @description YYYY-MM */
+                                month: string;
+                                fileName: string;
+                                size: number;
+                                /** Format: uuid */
+                                generatedBy: string;
+                                generatedByName: string | null;
+                                /** Format: date-time */
+                                generatedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not signed in, or PERMISSIONS_STALE (refresh and retry) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Missing permission */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not found, or another company's data */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/companies/{id}/generations/{genId}/file": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download a generated ZIP again, exactly as it was */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                    genId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description The ZIP */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/zip": string;
+                    };
+                };
+                /** @description Invalid request */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not signed in, or PERMISSIONS_STALE (refresh and retry) */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Missing permission */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+                /** @description Not found, or another company's data */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": components["schemas"]["Error"];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
 }
@@ -4121,6 +4719,8 @@ export interface components {
             stateId: string;
             code: string;
             name: string;
+            /** @enum {string} */
+            kind: "TABLE" | "WORD";
             active: boolean;
             /** @description true = shared state register, read-only */
             common: boolean;
@@ -4130,6 +4730,7 @@ export interface components {
             updatedAt: string;
         };
         Register: components["schemas"]["RegisterSummary"] & {
+            /** @description Definition for TABLE, WordDefinition for WORD */
             definition: {
                 /**
                  * @default employee_rows
@@ -4243,7 +4844,28 @@ export interface components {
                      */
                     orientation: "landscape" | "portrait";
                 };
+            } | {
+                /** @enum {string} */
+                population: "month" | "joiners" | "exits" | "women";
+                lines?: {
+                    earnings: {
+                        label: string;
+                        value: {
+                            src: string;
+                            col: string;
+                        };
+                    }[];
+                    deductions: {
+                        label: string;
+                        value: {
+                            src: string;
+                            col: string;
+                        };
+                    }[];
+                };
             };
+            /** @description a WORD register has its .docx */
+            hasFile: boolean;
         };
     };
     responses: never;

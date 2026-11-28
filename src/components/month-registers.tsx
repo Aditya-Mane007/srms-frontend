@@ -4,7 +4,8 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { format, parse, subMonths } from "date-fns"
 import { ActivityIcon, CheckCircle2Icon, CircleDashedIcon, DownloadIcon, LoaderIcon, XCircleIcon } from "lucide-react"
 import { toast } from "sonner"
-import { send } from "@/api/client"
+import { api, must, send } from "@/api/client"
+import type { paths } from "@/api/schema"
 import { useCan } from "@/access"
 import { ErrorText } from "@/components/layout"
 import { FileUpload } from "@/components/file-upload"
@@ -13,7 +14,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 // shortcut: hand-typed until the backend's generation routes are merged and in openapi.json; then use api.* types
-type Upload = { slot: Slot; fileName: string; rows: number; uploadedAt: string }
+type Upload = { rows: number }
 type Slot = "paysheet" | "attendance" | "leave"
 const SLOTS: [Slot, string][] = [["paysheet", "Paysheet"], ["attendance", "Attendance"], ["leave", "Leave"]]
 const MAX = 20 * 1024 * 1024
@@ -42,7 +43,7 @@ async function save(res: Response, fallback: string): Promise<string> {
 /** 1536 -> "1.5 KB" */
 export const fileSize = (b: number) => (b < 1024 ? `${b} B` : b < 1024 ** 2 ? `${(b / 1024).toFixed(1)} KB` : `${(b / 1024 ** 2).toFixed(1)} MB`)
 
-type Generation = { id: string; month: string; fileName: string; size: number; generatedBy: string; generatedByName: string; generatedAt: string }
+type Generation = paths["/companies/{id}/generations"]["get"]["responses"][200]["content"]["application/json"]["data"][number]
 
 const monthLabel = (m: string) => format(parse(m, "yyyy-MM", new Date()), "MMMM yyyy")
 
@@ -53,7 +54,7 @@ export function GenerationHistory({ companyId }: { companyId: string }) {
   // shortcut: loads the whole unpaged list and filters here; ask the backend for paging once a company has hundreds of runs
   const { data: all } = useQuery({
     queryKey: ["generations", companyId],
-    queryFn: async () => ((await (await send(`/companies/${companyId}/generations`)).json()) as { data: Generation[] }).data,
+    queryFn: () => must(api.GET("/companies/{id}/generations", { params: { path: { id: companyId } } })).then((r) => r.data),
   })
   const months = [...new Set(all?.map((g) => g.month))]
   const gens = all?.filter((g) => month === "all" || g.month === month)
@@ -169,7 +170,7 @@ export function MonthRegisters({ companyId, companyCode }: { companyId: string; 
   const can = useCan()
   const month = readMonth(sp.get("month"))
   const [year, mm] = month.split("-")
-  const thisYear = new Date().getFullYear()
+  const [thisYear] = useState(() => new Date().getFullYear())
   const years = Array.from({ length: 4 }, (_, i) => String(thisYear - i))
   const setMonth = (y: string, m: string) => setSp((p) => (p.set("month", `${y}-${m}`), p), { replace: true })
 
@@ -177,7 +178,7 @@ export function MonthRegisters({ companyId, companyCode }: { companyId: string; 
   const key = ["uploads", companyId, month]
   const { data: uploads } = useQuery({
     queryKey: key,
-    queryFn: async () => ((await (await send(`${base}/uploads`)).json()) as { data: Upload[] }).data,
+    queryFn: () => must(api.GET("/companies/{id}/months/{month}/uploads", { params: { path: { id: companyId, month } } })).then((r) => r.data),
   })
   const [busy, setBusy] = useState<Slot | "generate" | null>(null)
   const [problems, setProblems] = useState<Partial<Record<Slot, string>>>({})

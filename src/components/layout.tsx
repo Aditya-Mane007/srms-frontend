@@ -1,5 +1,5 @@
 import { toast } from "sonner"
-import { Fragment, useState, type FormEvent, type ReactNode } from "react"
+import { Fragment, Suspense, useState, type FormEvent, type ReactNode } from "react"
 import { Link, Navigate, Outlet, useLocation } from "react-router"
 import { MoonIcon, SunIcon } from "lucide-react"
 import { usePermissions } from "@/access"
@@ -49,7 +49,9 @@ export function AppLayout() {
         <AppSidebar />
         {/* min-w-0 + overflow-hidden: wide content scrolls inside the page body, never the whole screen */}
         <SidebarInset className="h-svh min-w-0 overflow-hidden">
-          <Outlet />
+          <Suspense fallback={<p className="p-6 text-sm text-muted-foreground" role="status">Loading…</p>}>
+            <Outlet />
+          </Suspense>
         </SidebarInset>
       </SidebarProvider>
     </SelectionProvider>

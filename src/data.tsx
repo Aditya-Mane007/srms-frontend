@@ -1,11 +1,19 @@
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import { createContext, useContext, useState, type ReactNode } from "react"
 import { useQuery } from "@tanstack/react-query"
-import { api, must } from "@/api/client"
+import { api, must, type Schemas } from "@/api/client"
 
-export const useCompanies = () =>
-  useQuery({ queryKey: ["companies"], queryFn: () => must(api.GET("/companies")).then((r) => r.data) })
+// every page, 100 at a time (the backend max), so the switcher and pickers are never cut short
+export async function allCompanies() {
+  const all: Schemas["Company"][] = []
+  for (;;) {
+    const r = await must(api.GET("/companies", { params: { query: { limit: 100, offset: all.length } } }))
+    all.push(...r.data)
+    if (!r.data.length || all.length >= r.meta.total_items) return all
+  }
+}
 
-// under ["companies"] / ["clients", companyId] so existing invalidations refresh them too
+export const useCompanies = () => useQuery({ queryKey: ["companies"], queryFn: allCompanies })
+
 export const useCompany = (id?: string) =>
   useQuery({
     queryKey: ["companies", id],
@@ -77,13 +85,11 @@ const load = (): Pick => {
 const SelCtx = createContext<{ sel: Pick; select: (p: Pick) => void } | null>(null)
 
 export function SelectionProvider({ children }: { children: ReactNode }) {
-  const [sel, setSel] = useState<Pick>(load)
+  const [stored, setSel] = useState<Pick>(load)
   const { data: companies } = useCompanies()
 
   // fall back to the first company when the stored one is gone
-  useEffect(() => {
-    if (companies && !companies.some((c) => c.id === sel.companyId)) setSel({ companyId: companies[0]?.id })
-  }, [companies, sel.companyId])
+  const sel = companies && !companies.some((c) => c.id === stored.companyId) ? { companyId: companies[0]?.id } : stored
 
   const select = (p: Pick) => {
     setSel(p)

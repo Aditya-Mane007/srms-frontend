@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react"
+import { useEffect, useState, type ReactNode } from "react"
 import { useSearchParams } from "react-router"
 import { keepPreviousData, useQuery } from "@tanstack/react-query"
 import { CheckIcon, ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon, Columns3Icon, RefreshCwIcon, SearchIcon } from "lucide-react"
@@ -103,7 +103,13 @@ export function DataTable<T>({
       { replace: true },
     )
 
-  const params: ListParams = { limit: compact ? 100 : size, offset: compact ? 0 : (pageNo - 1) * size, ...(q.trim() && { q: q.trim() }), ...(st && { status: st }) }
+  // the box follows the URL at once; the request waits until typing pauses for 300 ms
+  const [dq, setDq] = useState(q.trim())
+  useEffect(() => {
+    const t = setTimeout(() => setDq(q.trim()), 300)
+    return () => clearTimeout(t)
+  }, [q])
+  const params: ListParams = { limit: compact ? 100 : size, offset: compact ? 0 : (pageNo - 1) * size, ...(dq && { q: dq }), ...(st && { status: st }) }
   const { data, isFetching, refetch } = useQuery({
     queryKey: [...queryKey, "list", params],
     queryFn: () => must(fetch(params)),

@@ -15,7 +15,8 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
-type Def = Schemas["Register"]["definition"]
+// the editor builds table registers only; Word registers (docx upload) have no columns
+type Def = Extract<Schemas["Register"]["definition"], { columns: unknown }>
 type Col = Def["columns"][number]
 type Val = Col["value"]
 type F = { src: string; col: string }
@@ -184,14 +185,14 @@ export function RegisterEditorPage() {
   const [busy, setBusy] = useState(false)
   // take the loaded register into the form, again after each save (updatedAt changes)
   const [loaded, setLoaded] = useState<string>()
-  if (r && loaded !== r.updatedAt) {
+  if (r && "columns" in r.definition && loaded !== r.updatedAt) {
     setLoaded(r.updatedAt)
     setDef(structuredClone(r.definition))
     setName(r.name)
   }
 
   if (me && !me.isSuperAdmin) return <Navigate to="/404" replace />
-  if (r?.common) return <Navigate to={`/registers/${r.id}`} replace />
+  if (r && (r.common || !("columns" in r.definition))) return <Navigate to={`/registers/${r.id}`} replace />
   const state = states.find((s) => s.id === r?.stateId)
   const crumbs = [{ label: "Registers", to: "/registers" }, ...(state ? [{ label: state.name, to: `/registers?state=${state.code}` }] : [])]
   if (!r || !def) return <Page crumbs={[...crumbs, { label: isPending ? "Loading…" : "Not found" }]}>{null}</Page>
