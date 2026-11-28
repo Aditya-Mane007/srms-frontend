@@ -4,12 +4,12 @@ import { useCan } from "@/access"
 import { useState } from "react"
 import { Link, useNavigate, useParams, useSearchParams } from "react-router"
 import { useQueryClient } from "@tanstack/react-query"
-import { Building2Icon, EyeIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, PowerIcon, Settings2Icon, UploadIcon, UsersIcon, BriefcaseIcon, IdCardIcon, MapPinIcon, FileSpreadsheetIcon } from "lucide-react"
+import { Building2Icon, EyeIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, PowerIcon, Settings2Icon, UploadIcon, UsersIcon, BriefcaseIcon, IdCardIcon, MapPinIcon, FileSpreadsheetIcon, HistoryIcon } from "lucide-react"
 import { toast } from "sonner"
 import { api, must, type Schemas } from "@/api/client"
 import { useClient, useCompany, useSelection } from "@/data"
 import { EmployeeSeedDialog } from "@/components/employee-seed"
-import { MonthRegisters } from "@/components/month-registers"
+import { GenerationHistory, MonthRegisters } from "@/components/month-registers"
 import { DataTable, StatusBadge } from "@/components/data-table"
 import { ConfirmDialog, FormDialog } from "@/components/form-dialog"
 import { PlaceFields, SiteDetailFields, TextField } from "@/components/fields"
@@ -190,7 +190,7 @@ export function CompanyPage() {
   if (!company) return <Page crumbs={[{ label: "Companies", to: "/companies" }, { label: isPending ? "Loading…" : "Not found" }]}>{null}</Page>
   const first = can("employees:read") ? "employees" : "clients"
   const t = sp.get("tab")
-  const tab = t === "masters" || t === "clients" || (t === "registers" && can("monthly:read")) ? t : first
+  const tab = t === "masters" || t === "clients" || (t === "registers" && can("monthly:read")) || (t === "history" && can("registers:download")) ? t : first
 
   return (
     <Page bare crumbs={[{ label: "Companies", to: "/companies" }, { label: company.name }]}>
@@ -247,6 +247,11 @@ export function CompanyPage() {
             {can("monthly:read") && (
               <TabsTrigger value="registers" className="flex-none">
                 <FileSpreadsheetIcon aria-hidden /> Registers
+              </TabsTrigger>
+            )}
+            {can("registers:download") && (
+              <TabsTrigger value="history" className="flex-none">
+                <HistoryIcon aria-hidden /> History
               </TabsTrigger>
             )}
           </TabsList>
@@ -316,6 +321,9 @@ export function CompanyPage() {
           </TabsContent>
           <TabsContent value="registers" className="rounded-xl border bg-card p-4 lg:min-h-0 lg:flex-1 lg:overflow-auto">
             <MonthRegisters companyId={company.id} companyCode={company.code} />
+          </TabsContent>
+          <TabsContent value="history" className="rounded-xl border bg-card p-4 lg:min-h-0 lg:flex-1 lg:overflow-auto">
+            <GenerationHistory companyId={company.id} />
           </TabsContent>
           <TabsContent value="masters" className="lg:min-h-0 lg:flex-1 lg:overflow-auto">
             <Masters companyId={company.id} />

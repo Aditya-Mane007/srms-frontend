@@ -1,8 +1,8 @@
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { useSearchParams } from "react-router"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { format, parse, subMonths } from "date-fns"
-import { CheckCircle2Icon, CircleDashedIcon, DownloadIcon, LoaderIcon } from "lucide-react"
+import { CheckCircle2Icon, CircleDashedIcon, DownloadIcon, LoaderIcon, XCircleIcon } from "lucide-react"
 import { toast } from "sonner"
 import { send } from "@/api/client"
 import { useCan } from "@/access"
@@ -44,13 +44,20 @@ export const fileSize = (b: number) => (b < 1024 ? `${b} B` : b < 1024 ** 2 ? `$
 
 type Generation = { id: string; month: string; fileName: string; size: number; generatedBy: string; generatedByName: string; generatedAt: string }
 
-/** Every Generate of the month, newest first, each downloadable again. */
-function History({ companyId, month }: { companyId: string; month: string }) {
+const monthLabel = (m: string) => format(parse(m, "yyyy-MM", new Date()), "MMMM yyyy")
+
+/** Company page History tab: every Generate, newest first, each downloadable again. */
+export function GenerationHistory({ companyId }: { companyId: string }) {
   const [busy, setBusy] = useState<string | null>(null)
-  const { data: gens } = useQuery({
-    queryKey: ["generations", companyId, month],
-    queryFn: async () => ((await (await send(`/companies/${companyId}/generations?month=${month}`)).json()) as { data: Generation[] }).data,
+  const [month, setMonth] = useState("all")
+  // shortcut: loads the whole unpaged list and filters here; ask the backend for paging once a company has hundreds of runs
+  const { data: all } = useQuery({
+    queryKey: ["generations", companyId],
+    queryFn: async () => ((await (await send(`/companies/${companyId}/generations`)).json()) as { data: Generation[] }).data,
   })
+  const months = [...new Set(all?.map((g) => g.month))]
+  const gens = all?.filter((g) => month === "all" || g.month === month)
+  const items = [{ value: "all", label: "All months" }, ...months.map((m) => ({ value: m, label: monthLabel(m) }))]
   const download = async (g: Generation) => {
     setBusy(g.id)
     try {
@@ -62,12 +69,16 @@ function History({ companyId, month }: { companyId: string; month: string }) {
     }
   }
   return (
-    <section aria-labelledby="hist-h" className="flex flex-col gap-2">
-      <h3 id="hist-h" className="font-semibold">History</h3>
+    <section aria-label="Generation history" className="flex flex-col gap-3">
+      <Select items={items} value={month} onValueChange={(v) => setMonth(String(v))}>
+        <SelectTrigger aria-label="Month" className="w-44"><SelectValue /></SelectTrigger>
+        <SelectContent>{items.map((i) => <SelectItem key={i.value} value={i.value}>{i.label}</SelectItem>)}</SelectContent>
+      </Select>
       <div className="overflow-auto rounded-lg border">
         <Table>
           <TableHeader className="bg-muted">
             <TableRow>
+              <TableHead>Month</TableHead>
               <TableHead>Generated</TableHead>
               <TableHead>By</TableHead>
               <TableHead>File</TableHead>
@@ -77,10 +88,11 @@ function History({ companyId, month }: { companyId: string; month: string }) {
           </TableHeader>
           <TableBody>
             {!gens ? (
-              <TableRow><TableCell colSpan={5} role="status" className="h-12 text-center text-muted-foreground">Loading…</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} role="status" className="h-12 text-center text-muted-foreground">Loading…</TableCell></TableRow>
             ) : gens.length ? (
               gens.map((g) => (
                 <TableRow key={g.id}>
+                  <TableCell>{monthLabel(g.month)}</TableCell>
                   <TableCell>{format(new Date(g.generatedAt), "dd MMM, yyyy HH:mm")}</TableCell>
                   <TableCell>{g.generatedByName}</TableCell>
                   <TableCell className="font-mono text-xs">{g.fileName}</TableCell>
@@ -93,11 +105,49 @@ function History({ companyId, month }: { companyId: string; month: string }) {
                 </TableRow>
               ))
             ) : (
-              <TableRow><TableCell colSpan={5} className="h-12 text-center text-muted-foreground">Nothing generated for this month yet.</TableCell></TableRow>
+              <TableRow><TableCell colSpan={6} className="h-12 text-center text-muted-foreground">{month === "all" ? "Nothing generated yet." : "Nothing generated for this month."}</TableCell></TableRow>
             )}
           </TableBody>
         </Table>
       </div>
+    </section>
+  )
+}
+
+type Step = { id: number; text: string; state: "running" | "done" | "failed"; detail?: string; start: number; end?: number }
+
+/** This browser's uploads and generations, newest first; lost on reload. */
+function Activity({ steps }: { steps: Step[] }) {
+  const [now, setNow] = useState(() => Date.now())
+  const running = steps.some((s) => s.state === "running")
+  useEffect(() => {
+    if (!running) return
+    const t = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [running])
+  if (!steps.length) return null
+  return (
+    <section aria-labelledby="act-h" className="flex flex-col gap-2">
+      <h3 id="act-h" className="font-semibold">Activity</h3>
+      <ul aria-live="polite" className="flex flex-col divide-y rounded-lg border text-sm">
+        {steps.map((s) => (
+          <li key={s.id} className="flex items-start gap-2 px-3 py-2">
+            {s.state === "running" ? (
+              <LoaderIcon className="mt-0.5 size-4 shrink-0 animate-spin" aria-hidden />
+            ) : s.state === "done" ? (
+              <CheckCircle2Icon className="mt-0.5 size-4 shrink-0 text-green-700 dark:text-green-400" aria-hidden />
+            ) : (
+              <XCircleIcon className="mt-0.5 size-4 shrink-0 text-destructive" aria-hidden />
+            )}
+            <div className="flex min-w-0 flex-1 flex-col">
+              <span>
+                {s.text} <span className="text-muted-foreground">· {s.state === "running" ? "Running" : s.state === "done" ? "Done" : "Failed"} · {Math.round(((s.end ?? now) - s.start) / 1000)}s</span>
+              </span>
+              {s.detail && <span className="break-words text-muted-foreground">{s.detail}</span>}
+            </div>
+          </li>
+        ))}
+      </ul>
     </section>
   )
 }
@@ -125,38 +175,47 @@ export function MonthRegisters({ companyId, companyCode }: { companyId: string; 
   const [problems, setProblems] = useState<Partial<Record<Slot, string>>>({})
   const done = (s: Slot) => uploads?.find((u) => u.slot === s)
   const allIn = SLOTS.every(([s]) => done(s))
+  const [steps, setSteps] = useState<Step[]>([])
+  /** Runs `fn` as an Activity step; errors are toasted and kept on the step. */
+  const track = async (text: string, fn: () => Promise<string | void>) => {
+    const id = Date.now() + Math.random()
+    const patch = (p: Partial<Step>) => setSteps((all) => all.map((s) => (s.id === id ? { ...s, ...p, end: Date.now() } : s)))
+    setSteps((all) => [{ id, text, state: "running", start: Date.now() }, ...all])
+    try {
+      patch({ state: "done", detail: (await fn()) ?? undefined })
+    } catch (e) {
+      patch({ state: "failed", detail: (e as Error).message })
+      toast.error((e as Error).message)
+    }
+  }
 
   const upload = async (slot: Slot, f: File) => {
     const why = fileProblem(f)
     setProblems((p) => ({ ...p, [slot]: why ?? undefined }))
     if (why) return
     setBusy(slot)
-    try {
-      await send(`${base}/uploads/${slot}?fileName=${encodeURIComponent(f.name)}`, {
+    await track(`Uploading ${f.name} (${slot}, ${monthLabel(month)})`, async () => {
+      const res = await send(`${base}/uploads/${slot}?fileName=${encodeURIComponent(f.name)}`, {
         method: "PUT",
         headers: { "Content-Type": f.type || "application/octet-stream" },
         body: f,
       })
       await qc.invalidateQueries({ queryKey: key })
       toast.success(`${f.name} uploaded`)
-    } catch (e) {
-      toast.error((e as Error).message)
-    } finally {
-      setBusy(null)
-    }
+      return `${((await res.json()) as Upload).rows} rows`
+    })
+    setBusy(null)
   }
 
   const generate = async () => {
     setBusy("generate")
-    try {
+    await track(`Generating registers for ${monthLabel(month)}`, async () => {
       const name = await save(await send(`${base}/generate`, { method: "POST" }), `${companyCode}_${month}_registers.zip`)
       await qc.invalidateQueries({ queryKey: ["generations", companyId] })
       toast.success(`${name} downloaded`)
-    } catch (e) {
-      toast.error((e as Error).message)
-    } finally {
-      setBusy(null)
-    }
+      return `Saved ${name}`
+    })
+    setBusy(null)
   }
 
   return (
@@ -213,9 +272,9 @@ export function MonthRegisters({ companyId, companyCode }: { companyId: string; 
         })}
       </div>
       <p className="text-sm text-muted-foreground">
-        {format(parse(month, "yyyy-MM", new Date()), "MMMM yyyy")}: the ZIP has a folder per client, then per site, with an Excel file per register. Every download is kept in History below.
+        {monthLabel(month)}: the ZIP has a folder per client, then per site, with an Excel file per register. Every run is kept in the History tab.
       </p>
-      {can("registers:download") && <History companyId={companyId} month={month} />}
+      <Activity steps={steps} />
     </div>
   )
 }
