@@ -14,6 +14,7 @@ export function DashboardPage() {
   const clients = useClients(id).data ?? []
   const masters = [useSkillCategories(id).data, useMinimumWages(id).data, useDesignations(id).data]
   const has = (x?: unknown[]) => !!x?.length
+  const missing = [!company?.address?.trim() && "address", !company?.lin?.trim() && "Labour ID (LIN)"].filter(Boolean)
 
   if (companies && !company)
     return (
@@ -23,7 +24,12 @@ export function DashboardPage() {
     )
 
   const steps: Step[] = [
-    { label: "Company details", state: company?.address && company.lin ? "done" : "todo", to: `/companies/${id}`, note: "Address and labour ID appear on register headers." },
+    {
+      label: "Company details",
+      state: missing.length ? "todo" : "done",
+      to: `/companies/${id}`,
+      note: missing.length ? `Missing: ${missing.join(", ")}. Both appear on register headers.` : "Address and labour ID appear on register headers.",
+    },
     { label: "Clients", state: has(clients) ? "done" : "todo", to: `/companies/${id}` },
     { label: "Sites", state: has(clients) ? "open" : "later", to: `/companies/${id}`, note: "Add each client's sites on the client's page." },
     { label: "Masters: skill categories, minimum wages, designations", state: masters.every(has) ? "done" : "todo", to: `/companies/${id}/masters` },
