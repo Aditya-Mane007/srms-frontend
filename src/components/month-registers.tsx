@@ -31,8 +31,8 @@ export function fileProblem(f: { name: string; size: number }): string | null {
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => [String(i + 1).padStart(2, "0"), format(new Date(2000, i, 1), "MMMM")] as [string, string])
 
-/** Client page tab: pick a month, upload its three files, generate the registers ZIP. */
-export function MonthRegisters({ clientId, clientCode }: { clientId: string; clientCode: string }) {
+/** Company page tab: pick a month, upload its three files, generate the registers ZIP. */
+export function MonthRegisters({ companyId, companyCode }: { companyId: string; companyCode: string }) {
   const [sp, setSp] = useSearchParams()
   const qc = useQueryClient()
   const can = useCan()
@@ -42,8 +42,8 @@ export function MonthRegisters({ clientId, clientCode }: { clientId: string; cli
   const years = Array.from({ length: 4 }, (_, i) => String(thisYear - i))
   const setMonth = (y: string, m: string) => setSp((p) => (p.set("month", `${y}-${m}`), p), { replace: true })
 
-  const base = `/clients/${clientId}/months/${month}`
-  const key = ["uploads", clientId, month]
+  const base = `/companies/${companyId}/months/${month}`
+  const key = ["uploads", companyId, month]
   const { data: uploads } = useQuery({
     queryKey: key,
     queryFn: async () => ((await (await send(`${base}/uploads`)).json()) as { data: Upload[] }).data,
@@ -77,7 +77,7 @@ export function MonthRegisters({ clientId, clientCode }: { clientId: string; cli
     setBusy("generate")
     try {
       const res = await send(`${base}/generate`, { method: "POST" })
-      const name = /filename="?([^";]+)"?/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ?? `${clientCode}_${month}_registers.zip`
+      const name = /filename="?([^";]+)"?/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ?? `${companyCode}_${month}_registers.zip`
       const url = URL.createObjectURL(await res.blob())
       const a = Object.assign(document.createElement("a"), { href: url, download: name })
       a.click()
@@ -144,7 +144,7 @@ export function MonthRegisters({ clientId, clientCode }: { clientId: string; cli
         })}
       </div>
       <p className="text-sm text-muted-foreground">
-        {format(parse(month, "yyyy-MM", new Date()), "MMMM yyyy")}: the ZIP has one folder per site with an Excel file per register. It is not kept, so save it.
+        {format(parse(month, "yyyy-MM", new Date()), "MMMM yyyy")}: the ZIP has a folder per client, then per site, with an Excel file per register. It is not kept, so save it.
       </p>
     </div>
   )

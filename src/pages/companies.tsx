@@ -190,7 +190,7 @@ export function CompanyPage() {
   if (!company) return <Page crumbs={[{ label: "Companies", to: "/companies" }, { label: isPending ? "Loading…" : "Not found" }]}>{null}</Page>
   const first = can("employees:read") ? "employees" : "clients"
   const t = sp.get("tab")
-  const tab = t === "masters" || t === "clients" ? t : first
+  const tab = t === "masters" || t === "clients" || (t === "registers" && can("monthly:read")) ? t : first
 
   return (
     <Page bare crumbs={[{ label: "Companies", to: "/companies" }, { label: company.name }]}>
@@ -244,6 +244,11 @@ export function CompanyPage() {
             <TabsTrigger value="masters" className="flex-none">
               <Settings2Icon aria-hidden /> Masters
             </TabsTrigger>
+            {can("monthly:read") && (
+              <TabsTrigger value="registers" className="flex-none">
+                <FileSpreadsheetIcon aria-hidden /> Registers
+              </TabsTrigger>
+            )}
           </TabsList>
           {can("employees:read") && (
             <TabsContent value="employees" className="flex h-[70svh] flex-col rounded-xl border bg-card p-4 lg:h-auto lg:min-h-0 lg:flex-1">
@@ -309,6 +314,9 @@ export function CompanyPage() {
             ]}
           />
           </TabsContent>
+          <TabsContent value="registers" className="rounded-xl border bg-card p-4 lg:min-h-0 lg:flex-1 lg:overflow-auto">
+            <MonthRegisters companyId={company.id} companyCode={company.code} />
+          </TabsContent>
           <TabsContent value="masters" className="lg:min-h-0 lg:flex-1 lg:overflow-auto">
             <Masters companyId={company.id} />
           </TabsContent>
@@ -350,7 +358,7 @@ export function ClientPage() {
   const base = [{ label: "Companies", to: "/companies" }, { label: company?.name ?? "…", to: `/companies/${companyId}` }, { label: "Clients", to: `/companies/${companyId}` }]
   if (!client) return <Page crumbs={[...base, { label: isPending ? "Loading…" : "Not found" }]}>{null}</Page>
   const refresh = () => Promise.all([qc.invalidateQueries({ queryKey: ["clients", companyId] }), qc.invalidateQueries({ queryKey: ["sites", clientId] })])
-  const tab = sp.get("tab") === "sites" ? "sites" : sp.get("tab") === "registers" && can("monthly:read") ? "registers" : "employees"
+  const tab = sp.get("tab") === "sites" ? "sites" : "employees"
   const close = (o: boolean) => !o && setDialog(null)
 
   return (
@@ -417,11 +425,6 @@ export function ClientPage() {
             <TabsTrigger value="sites" className="flex-none">
               <MapPinIcon aria-hidden /> Sites
             </TabsTrigger>
-            {can("monthly:read") && (
-              <TabsTrigger value="registers" className="flex-none">
-                <FileSpreadsheetIcon aria-hidden /> Registers
-              </TabsTrigger>
-            )}
           </TabsList>
           <TabsContent value="employees" className="flex h-[70svh] flex-col rounded-xl border bg-card p-4 lg:h-auto lg:min-h-0 lg:flex-1">
             <DataTable
@@ -434,9 +437,6 @@ export function ClientPage() {
               empty="No employees at this client's sites."
               columns={employeeColumns}
             />
-          </TabsContent>
-          <TabsContent value="registers" className="rounded-xl border bg-card p-4 lg:min-h-0 lg:flex-1 lg:overflow-auto">
-            <MonthRegisters clientId={client.id} clientCode={client.code} />
           </TabsContent>
           <TabsContent value="sites" className="flex h-[70svh] flex-col rounded-xl border bg-card p-4 lg:h-auto lg:min-h-0 lg:flex-1">
             <DataTable
