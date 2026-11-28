@@ -50,15 +50,15 @@ export function DashboardPage() {
       to: `/companies/${id}`,
       note: missing.length ? `Optional, not set: ${missing.join(", ")}. Shown on register headers when filled in.` : undefined,
     },
-    { label: "Clients", state: has(clients) ? "done" : "todo", to: `/companies/${id}` },
-    { label: "Sites", to: `/companies/${id}`, ...coverage(sites, "Add each client's sites on the client's page.") },
+    { label: "Clients", state: has(clients) ? "done" : "todo", to: `/companies/${id}?tab=clients` },
+    { label: "Sites", to: `/companies/${id}?tab=clients`, ...coverage(sites, "Add each client's sites on the client's page.") },
     {
       label: "Masters: skill categories, minimum wages, designations",
       state: masters.every(has) ? "done" : "todo",
-      to: `/companies/${id}/masters`,
+      to: `/companies/${id}?tab=masters`,
       note: masters.some((m) => m && !m.length) ? `None yet: ${["skill categories", "minimum wages", "designations"].filter((_, i) => masters[i] && !masters[i]!.length).join(", ")}.` : undefined,
     },
-    { label: "Employees", to: `/companies/${id}`, ...coverage(emps, "Upload each client's seed file on that client's page.") },
+    { label: "Employees", to: `/companies/${id}?tab=employees`, ...coverage(emps, "Upload each client's seed file on that client's page.") },
   ]
   const icon = { done: CheckCircle2Icon, todo: CircleDashedIcon, later: ClockIcon, open: CircleDashedIcon }
   const text = { done: "Done", todo: "To do", later: "After clients", open: "Per client" }
