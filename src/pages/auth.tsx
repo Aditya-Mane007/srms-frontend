@@ -106,7 +106,7 @@ function PasswordInput(props: React.ComponentProps<typeof Input>) {
         type="button"
         variant="ghost"
         size="icon-sm"
-        className="absolute inset-y-0 right-1 my-auto text-muted-foreground"
+        className="absolute inset-y-0 right-1 my-auto text-muted-foreground active:not-aria-[haspopup]:translate-y-0"
         aria-label={shown ? "Hide password" : "Show password"}
         aria-pressed={shown}
         onClick={() => setShown((v) => !v)}
