@@ -4,11 +4,12 @@ import { useCan } from "@/access"
 import { useState } from "react"
 import { Link, useNavigate, useParams, useSearchParams } from "react-router"
 import { useQueryClient } from "@tanstack/react-query"
-import { Building2Icon, EyeIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, PowerIcon, Settings2Icon, UploadIcon, UsersIcon, BriefcaseIcon, IdCardIcon, MapPinIcon } from "lucide-react"
+import { Building2Icon, EyeIcon, MoreHorizontalIcon, PencilIcon, PlusIcon, PowerIcon, Settings2Icon, UploadIcon, UsersIcon, BriefcaseIcon, IdCardIcon, MapPinIcon, FileSpreadsheetIcon } from "lucide-react"
 import { toast } from "sonner"
 import { api, must, type Schemas } from "@/api/client"
 import { useClient, useCompany, useSelection } from "@/data"
 import { EmployeeSeedDialog } from "@/components/employee-seed"
+import { MonthRegisters } from "@/components/month-registers"
 import { DataTable, StatusBadge } from "@/components/data-table"
 import { ConfirmDialog, FormDialog } from "@/components/form-dialog"
 import { PlaceFields, SiteDetailFields, TextField } from "@/components/fields"
@@ -349,7 +350,7 @@ export function ClientPage() {
   const base = [{ label: "Companies", to: "/companies" }, { label: company?.name ?? "…", to: `/companies/${companyId}` }, { label: "Clients", to: `/companies/${companyId}` }]
   if (!client) return <Page crumbs={[...base, { label: isPending ? "Loading…" : "Not found" }]}>{null}</Page>
   const refresh = () => Promise.all([qc.invalidateQueries({ queryKey: ["clients", companyId] }), qc.invalidateQueries({ queryKey: ["sites", clientId] })])
-  const tab = sp.get("tab") === "sites" ? "sites" : "employees"
+  const tab = sp.get("tab") === "sites" ? "sites" : sp.get("tab") === "registers" && can("monthly:read") ? "registers" : "employees"
   const close = (o: boolean) => !o && setDialog(null)
 
   return (
@@ -416,6 +417,11 @@ export function ClientPage() {
             <TabsTrigger value="sites" className="flex-none">
               <MapPinIcon aria-hidden /> Sites
             </TabsTrigger>
+            {can("monthly:read") && (
+              <TabsTrigger value="registers" className="flex-none">
+                <FileSpreadsheetIcon aria-hidden /> Registers
+              </TabsTrigger>
+            )}
           </TabsList>
           <TabsContent value="employees" className="flex h-[70svh] flex-col rounded-xl border bg-card p-4 lg:h-auto lg:min-h-0 lg:flex-1">
             <DataTable
@@ -428,6 +434,9 @@ export function ClientPage() {
               empty="No employees at this client's sites."
               columns={employeeColumns}
             />
+          </TabsContent>
+          <TabsContent value="registers" className="rounded-xl border bg-card p-4 lg:min-h-0 lg:flex-1 lg:overflow-auto">
+            <MonthRegisters clientId={client.id} clientCode={client.code} />
           </TabsContent>
           <TabsContent value="sites" className="flex h-[70svh] flex-col rounded-xl border bg-card p-4 lg:h-auto lg:min-h-0 lg:flex-1">
             <DataTable

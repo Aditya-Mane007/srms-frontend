@@ -54,6 +54,13 @@ async function authFetch(input: Request): Promise<Response> {
 
 export const api = createClient<paths>({ baseUrl: BASE, fetch: authFetch })
 
+/** Signed-in fetch for raw file bodies (uploads, ZIP downloads); throws the API's error message. */
+export async function send(path: string, init?: RequestInit): Promise<Response> {
+  const res = await authFetch(new Request(BASE + path, init))
+  if (!res.ok) throw new Error(errorMessage(await res.json().catch(() => undefined)))
+  return res
+}
+
 /** The backend's `{ error: { message } }`, or a fallback. */
 export function errorMessage(err: unknown): string {
   const e = err as { error?: { message?: string } } | undefined
