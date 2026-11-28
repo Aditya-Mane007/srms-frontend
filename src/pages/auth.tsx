@@ -1,4 +1,4 @@
-import { CheckIcon, KeyRoundIcon, LogInIcon, SendIcon } from "lucide-react"
+import { CheckIcon, EyeIcon, EyeOffIcon, KeyRoundIcon, LogInIcon, SendIcon } from "lucide-react"
 import { useState, type ReactNode } from "react"
 import { ErrorText, str, useSubmit } from "@/components/layout"
 import { Link, Navigate, useLocation, useNavigate, useSearchParams } from "react-router"
@@ -97,10 +97,24 @@ export function ForgotPasswordPage() {
 }
 
 function NewPassword() {
+  const [shown, setShown] = useState(false)
   return (
     <Field>
       <FieldLabel htmlFor="password">New password</FieldLabel>
-      <Input id="password" name="password" type="password" autoComplete="new-password" minLength={10} maxLength={200} required aria-describedby="pw-hint" />
+      <div className="relative">
+        <Input id="password" name="password" type={shown ? "text" : "password"} autoComplete="new-password" minLength={10} maxLength={200} required aria-describedby="pw-hint" className="pr-9" />
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon-sm"
+          className="absolute top-1/2 right-1 -translate-y-1/2 text-muted-foreground"
+          aria-label={shown ? "Hide password" : "Show password"}
+          aria-pressed={shown}
+          onClick={() => setShown((v) => !v)}
+        >
+          {shown ? <EyeOffIcon /> : <EyeIcon />}
+        </Button>
+      </div>
       <FieldDescription id="pw-hint">At least 10 characters.</FieldDescription>
     </Field>
   )
