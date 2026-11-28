@@ -11,6 +11,7 @@ import { ErrorText } from "@/components/layout"
 import { FileUpload } from "@/components/file-upload"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { SkeletonRows } from "@/components/skeletons"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 // shortcut: hand-typed until the backend's generation routes are merged and in openapi.json; then use api.* types
@@ -89,7 +90,7 @@ export function GenerationHistory({ companyId }: { companyId: string }) {
           </TableHeader>
           <TableBody>
             {!gens ? (
-              <TableRow><TableCell colSpan={6} role="status" className="h-12 text-center text-muted-foreground">Loading…</TableCell></TableRow>
+              <SkeletonRows cols={6} />
             ) : gens.length ? (
               gens.map((g) => (
                 <TableRow key={g.id}>

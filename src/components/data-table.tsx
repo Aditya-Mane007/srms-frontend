@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { SkeletonRows } from "@/components/skeletons"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 /** Active / inactive pill; the word carries the meaning, not the colour. */
@@ -204,9 +205,7 @@ export function DataTable<T>({
           </TableHeader>
           <TableBody aria-busy={isFetching} className={height === "fill" ? "[&_tr:last-child]:border-b" : undefined}>
             {!rows ? (
-              <TableRow>
-                <TableCell colSpan={span} className="h-16 text-center text-muted-foreground" role="status">Loading…</TableCell>
-              </TableRow>
+              <SkeletonRows cols={span} />
             ) : rows.length ? (
               rows.map((r) => (
                 <TableRow key={rowKey(r)}>

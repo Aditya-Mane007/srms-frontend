@@ -13,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { PageSkeleton } from "@/components/skeletons"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 // the editor builds table registers only; Word registers (docx upload) have no columns
@@ -195,7 +196,7 @@ export function RegisterEditorPage() {
   if (r && (r.common || !("columns" in r.definition))) return <Navigate to={`/registers/${r.id}`} replace />
   const state = states.find((s) => s.id === r?.stateId)
   const crumbs = [{ label: "Registers", to: "/registers" }, ...(state ? [{ label: state.name, to: `/registers?state=${state.code}` }] : [])]
-  if (!r || !def) return <Page crumbs={[...crumbs, { label: isPending ? "Loading…" : "Not found" }]}>{null}</Page>
+  if (!r || !def) return <Page bare={isPending} crumbs={[...crumbs, { label: isPending ? "Loading…" : "Not found" }]}>{isPending && <PageSkeleton />}</Page>
 
   const err = (p: string) => errors[p]
   const edit = (fn: (d: Def) => void) =>

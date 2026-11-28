@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Input } from "@/components/ui/input"
 import { useCompanies } from "@/data"
+import { Skeleton } from "@/components/ui/skeleton"
 import { useGrantable, useRoles } from "@/pages/roles"
 
 const ids = (d: FormData, k: string) => d.getAll(k).map(String)
@@ -127,7 +128,12 @@ function AccessDialog({ user, onClose }: { user: Schemas["User"]; onClose: () =>
         toast.success("Access saved")
       }}
     >
-      {data ? <AccessFields key="loaded" roleIds={data.roleIds} companyIds={data.companyIds} /> : <p className="text-sm text-muted-foreground">Loading…</p>}
+      {data ? <AccessFields key="loaded" roleIds={data.roleIds} companyIds={data.companyIds} /> : (
+        <div role="status" aria-label="Loading" className="flex flex-col gap-3">
+          <Skeleton className="h-9 w-full" />
+          <Skeleton className="h-24 w-full" />
+        </div>
+      )}
     </FormDialog>
   )
 }

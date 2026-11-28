@@ -16,6 +16,7 @@ import { Page } from "@/components/layout"
 import { InfoPanel, ProfileHeader, profileGrid } from "@/components/profile"
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { ProfileSkeleton } from "@/components/skeletons"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 type Def = Extract<Schemas["Register"]["definition"], { columns: unknown }>
@@ -152,7 +153,7 @@ export function RegisterPage() {
   })
   const state = states.find((s) => s.id === r?.stateId)
   const crumbs = [{ label: "Registers", to: "/registers" }, ...(state ? [{ label: state.name, to: `/registers?state=${state.code}` }] : [])]
-  if (!r) return <Page crumbs={[...crumbs, { label: isPending ? "Loading…" : "Not found" }]}>{null}</Page>
+  if (!r) return <Page bare={isPending} crumbs={[...crumbs, { label: isPending ? "Loading…" : "Not found" }]}>{isPending && <ProfileSkeleton />}</Page>
   const d = r.definition
   const head = <ProfileHeader icon={<FileSpreadsheetIcon />} name={r.name} code={r.code} actions={<RegisterActions r={r} stateCode={state?.code} />} />
   const base: [string, ReactNode][] = [

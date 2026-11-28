@@ -18,6 +18,7 @@ import { optStr, Page, str } from "@/components/layout"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Masters } from "@/pages/masters"
 import { Button } from "@/components/ui/button"
+import { ProfileSkeleton } from "@/components/skeletons"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 
 const status = (active: boolean) => <StatusBadge active={active} />
@@ -187,7 +188,7 @@ export function CompanyPage() {
   const [dialog, setDialog] = useState<CompanyDialog>(null)
   const can = useCan()
   const { data: company, isPending } = useCompany(companyId)
-  if (!company) return <Page crumbs={[{ label: "Companies", to: "/companies" }, { label: isPending ? "Loading…" : "Not found" }]}>{null}</Page>
+  if (!company) return <Page bare={isPending} crumbs={[{ label: "Companies", to: "/companies" }, { label: isPending ? "Loading…" : "Not found" }]}>{isPending && <ProfileSkeleton />}</Page>
   const first = can("employees:read") ? "employees" : "clients"
   const t = sp.get("tab")
   const tab = t === "masters" || t === "clients" || (t === "registers" && can("monthly:read")) || (t === "history" && can("registers:download")) ? t : first
@@ -364,7 +365,7 @@ export function ClientPage() {
   const client = found?.companyId === companyId ? found : undefined
   const company = client?.company
   const base = [{ label: "Companies", to: "/companies" }, { label: company?.name ?? "…", to: `/companies/${companyId}` }, { label: "Clients", to: `/companies/${companyId}` }]
-  if (!client) return <Page crumbs={[...base, { label: isPending ? "Loading…" : "Not found" }]}>{null}</Page>
+  if (!client) return <Page bare={isPending} crumbs={[...base, { label: isPending ? "Loading…" : "Not found" }]}>{isPending && <ProfileSkeleton />}</Page>
   const refresh = () => Promise.all([qc.invalidateQueries({ queryKey: ["clients", companyId] }), qc.invalidateQueries({ queryKey: ["sites", clientId] })])
   const tab = sp.get("tab") === "sites" ? "sites" : "employees"
   const close = (o: boolean) => !o && setDialog(null)
