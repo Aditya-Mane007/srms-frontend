@@ -52,7 +52,12 @@ export function DashboardPage() {
     },
     { label: "Clients", state: has(clients) ? "done" : "todo", to: `/companies/${id}` },
     { label: "Sites", to: `/companies/${id}`, ...coverage(sites, "Add each client's sites on the client's page.") },
-    { label: "Masters: skill categories, minimum wages, designations", state: masters.every(has) ? "done" : "todo", to: `/companies/${id}/masters` },
+    {
+      label: "Masters: skill categories, minimum wages, designations",
+      state: masters.every(has) ? "done" : "todo",
+      to: `/companies/${id}/masters`,
+      note: masters.some((m) => m && !m.length) ? `None yet: ${["skill categories", "minimum wages", "designations"].filter((_, i) => masters[i] && !masters[i]!.length).join(", ")}.` : undefined,
+    },
     { label: "Employees", to: `/companies/${id}`, ...coverage(emps, "Upload each client's seed file on that client's page.") },
   ]
   const icon = { done: CheckCircle2Icon, todo: CircleDashedIcon, later: ClockIcon, open: CircleDashedIcon }
