@@ -26,9 +26,10 @@ export function DashboardPage() {
   const steps: Step[] = [
     {
       label: "Company details",
-      state: missing.length ? "todo" : "done",
+      // only code and name are required, and every company has them; blank optional fields are a hint, not a todo
+      state: company ? "done" : "todo",
       to: `/companies/${id}`,
-      note: missing.length ? `Missing: ${missing.join(", ")}. Both appear on register headers.` : "Address and labour ID appear on register headers.",
+      note: missing.length ? `Optional, not set: ${missing.join(", ")}. Shown on register headers when filled in.` : undefined,
     },
     { label: "Clients", state: has(clients) ? "done" : "todo", to: `/companies/${id}` },
     { label: "Sites", state: has(clients) ? "open" : "later", to: `/companies/${id}`, note: "Add each client's sites on the client's page." },
