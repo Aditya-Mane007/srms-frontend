@@ -1,4 +1,6 @@
 import { Link } from "react-router"
+import { useQueries } from "@tanstack/react-query"
+import { api, must } from "@/api/client"
 import { CheckCircle2Icon, CircleDashedIcon, ClockIcon } from "lucide-react"
 import { useClients, useCompanies, useDesignations, useMinimumWages, useSelection, useSkillCategories } from "@/data"
 import { Page } from "@/components/layout"
@@ -14,6 +16,23 @@ export function DashboardPage() {
   const clients = useClients(id).data ?? []
   const masters = [useSkillCategories(id).data, useMinimumWages(id).data, useDesignations(id).data]
   const has = (x?: unknown[]) => !!x?.length
+  // per active client: does it have a site / an employee? (limit 1: only existence matters)
+  const active = clients.filter((c) => c.active)
+  const usePerClient = (what: "sites" | "employees") =>
+    useQueries({
+      queries: active.map((c) => ({
+        queryKey: ["dashboard", what, c.id],
+        queryFn: () => must(api.GET(`/clients/{id}/${what}`, { params: { path: { id: c.id }, query: { limit: 1 } } })).then((r) => r.data.length > 0),
+      })),
+    })
+  const sites = usePerClient("sites")
+  const emps = usePerClient("employees")
+  /** done when every active client has one; else "x of y clients" */
+  const coverage = (rs: { data?: boolean }[], none: string) => {
+    const n = rs.filter((r) => r.data).length
+    if (!active.length) return { state: "later" as const }
+    return n === active.length ? { state: "done" as const } : { state: "open" as const, note: `${n} of ${active.length} clients done. ${none}` }
+  }
   const missing = [!company?.address?.trim() && "address", !company?.lin?.trim() && "Labour ID (LIN)"].filter(Boolean)
 
   if (companies && !company)
@@ -32,9 +51,9 @@ export function DashboardPage() {
       note: missing.length ? `Optional, not set: ${missing.join(", ")}. Shown on register headers when filled in.` : undefined,
     },
     { label: "Clients", state: has(clients) ? "done" : "todo", to: `/companies/${id}` },
-    { label: "Sites", state: has(clients) ? "open" : "later", to: `/companies/${id}`, note: "Add each client's sites on the client's page." },
+    { label: "Sites", to: `/companies/${id}`, ...coverage(sites, "Add each client's sites on the client's page.") },
     { label: "Masters: skill categories, minimum wages, designations", state: masters.every(has) ? "done" : "todo", to: `/companies/${id}/masters` },
-    { label: "Employees", state: has(clients) ? "open" : "later", to: `/companies/${id}`, note: "Upload each client's seed file on that client's page." },
+    { label: "Employees", to: `/companies/${id}`, ...coverage(emps, "Upload each client's seed file on that client's page.") },
   ]
   const icon = { done: CheckCircle2Icon, todo: CircleDashedIcon, later: ClockIcon, open: CircleDashedIcon }
   const text = { done: "Done", todo: "To do", later: "After clients", open: "Per client" }
