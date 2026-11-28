@@ -66,3 +66,38 @@ export function PageSkeleton() {
     </div>
   )
 }
+
+/** Whole-app placeholder while the session loads: sidebar (desktop only, as the real one), top bar, page block. */
+export function AppSkeleton() {
+  return (
+    <div className="flex h-svh">
+      <aside aria-hidden className="hidden w-(--sidebar-width,16rem) shrink-0 flex-col gap-6 border-r bg-sidebar p-3 md:flex">
+        <div className="flex items-center gap-2">
+          <Skeleton className="size-8 rounded-lg" />
+          <Skeleton className="h-4 w-28" />
+        </div>
+        <div className="flex flex-col gap-3">
+          {WIDTHS.map((w, i) => (
+            <div key={i} className="flex items-center gap-2">
+              <Skeleton className="size-4" />
+              <Skeleton className={`h-4 ${w}`} />
+            </div>
+          ))}
+        </div>
+        <div className="mt-auto flex items-center gap-2">
+          <Skeleton className="size-8 rounded-full" />
+          <Skeleton className="h-4 w-32" />
+        </div>
+      </aside>
+      <div className="flex min-w-0 flex-1 flex-col">
+        <div aria-hidden className="flex h-[55px] shrink-0 items-center gap-2 border-b px-4">
+          <Skeleton className="size-6" />
+          <Skeleton className="h-4 w-40" />
+        </div>
+        <div className="p-4">
+          <PageSkeleton />
+        </div>
+      </div>
+    </div>
+  )
+}

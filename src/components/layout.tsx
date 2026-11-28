@@ -16,7 +16,7 @@ import {
   BreadcrumbSeparator,
 } from "@/components/ui/breadcrumb"
 import { Separator } from "@/components/ui/separator"
-import { PageSkeleton } from "@/components/skeletons"
+import { AppSkeleton, PageSkeleton } from "@/components/skeletons"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
 
 function ThemeToggle() {
@@ -42,7 +42,7 @@ export function AppLayout() {
   const { auth } = useAuth()
   const location = useLocation()
   const perms = usePermissions()
-  if (auth.status === "loading" || (auth.status === "in" && perms.isPending)) return <div className="p-4"><PageSkeleton /></div>
+  if (auth.status === "loading" || (auth.status === "in" && perms.isPending)) return <AppSkeleton />
   if (auth.status === "out") return <Navigate to="/login" replace state={{ from: location.pathname }} />
   return (
     <SelectionProvider>
