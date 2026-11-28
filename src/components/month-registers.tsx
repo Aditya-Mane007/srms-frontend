@@ -10,6 +10,7 @@ import { ErrorText } from "@/components/layout"
 import { FileUpload } from "@/components/file-upload"
 import { Button } from "@/components/ui/button"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 
 // shortcut: hand-typed until the backend's generation routes are merged and in openapi.json; then use api.* types
 type Upload = { slot: Slot; fileName: string; rows: number; uploadedAt: string }
@@ -27,6 +28,78 @@ export function fileProblem(f: { name: string; size: number }): string | null {
   if (!/\.xlsx?$/i.test(f.name)) return "Choose an Excel file (.xls or .xlsx)."
   if (f.size > MAX) return "The file is over 20 MB."
   return null
+}
+
+/** Saves a ZIP response under the backend's file name; returns that name. */
+async function save(res: Response, fallback: string): Promise<string> {
+  const name = /filename="?([^";]+)"?/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ?? fallback
+  const url = URL.createObjectURL(await res.blob())
+  Object.assign(document.createElement("a"), { href: url, download: name }).click()
+  URL.revokeObjectURL(url)
+  return name
+}
+
+/** 1536 -> "1.5 KB" */
+export const fileSize = (b: number) => (b < 1024 ? `${b} B` : b < 1024 ** 2 ? `${(b / 1024).toFixed(1)} KB` : `${(b / 1024 ** 2).toFixed(1)} MB`)
+
+type Generation = { id: string; month: string; fileName: string; size: number; generatedBy: string; generatedByName: string; generatedAt: string }
+
+/** Every Generate of the month, newest first, each downloadable again. */
+function History({ companyId, month }: { companyId: string; month: string }) {
+  const [busy, setBusy] = useState<string | null>(null)
+  const { data: gens } = useQuery({
+    queryKey: ["generations", companyId, month],
+    queryFn: async () => ((await (await send(`/companies/${companyId}/generations?month=${month}`)).json()) as { data: Generation[] }).data,
+  })
+  const download = async (g: Generation) => {
+    setBusy(g.id)
+    try {
+      await save(await send(`/companies/${companyId}/generations/${g.id}/file`), g.fileName)
+    } catch (e) {
+      toast.error((e as Error).message)
+    } finally {
+      setBusy(null)
+    }
+  }
+  return (
+    <section aria-labelledby="hist-h" className="flex flex-col gap-2">
+      <h3 id="hist-h" className="font-semibold">History</h3>
+      <div className="overflow-auto rounded-lg border">
+        <Table>
+          <TableHeader className="bg-muted">
+            <TableRow>
+              <TableHead>Generated</TableHead>
+              <TableHead>By</TableHead>
+              <TableHead>File</TableHead>
+              <TableHead>Size</TableHead>
+              <TableHead><span className="sr-only">Actions</span></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {!gens ? (
+              <TableRow><TableCell colSpan={5} role="status" className="h-12 text-center text-muted-foreground">Loading…</TableCell></TableRow>
+            ) : gens.length ? (
+              gens.map((g) => (
+                <TableRow key={g.id}>
+                  <TableCell>{format(new Date(g.generatedAt), "dd MMM, yyyy HH:mm")}</TableCell>
+                  <TableCell>{g.generatedByName}</TableCell>
+                  <TableCell className="font-mono text-xs">{g.fileName}</TableCell>
+                  <TableCell>{fileSize(g.size)}</TableCell>
+                  <TableCell className="text-right">
+                    <Button variant="outline" size="sm" disabled={busy === g.id} onClick={() => download(g)}>
+                      {busy === g.id ? <LoaderIcon className="animate-spin" /> : <DownloadIcon />} Download
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow><TableCell colSpan={5} className="h-12 text-center text-muted-foreground">Nothing generated for this month yet.</TableCell></TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
+    </section>
+  )
 }
 
 const MONTHS = Array.from({ length: 12 }, (_, i) => [String(i + 1).padStart(2, "0"), format(new Date(2000, i, 1), "MMMM")] as [string, string])
@@ -76,12 +149,8 @@ export function MonthRegisters({ companyId, companyCode }: { companyId: string; 
   const generate = async () => {
     setBusy("generate")
     try {
-      const res = await send(`${base}/generate`, { method: "POST" })
-      const name = /filename="?([^";]+)"?/.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ?? `${companyCode}_${month}_registers.zip`
-      const url = URL.createObjectURL(await res.blob())
-      const a = Object.assign(document.createElement("a"), { href: url, download: name })
-      a.click()
-      URL.revokeObjectURL(url)
+      const name = await save(await send(`${base}/generate`, { method: "POST" }), `${companyCode}_${month}_registers.zip`)
+      await qc.invalidateQueries({ queryKey: ["generations", companyId] })
       toast.success(`${name} downloaded`)
     } catch (e) {
       toast.error((e as Error).message)
@@ -144,8 +213,9 @@ export function MonthRegisters({ companyId, companyCode }: { companyId: string; 
         })}
       </div>
       <p className="text-sm text-muted-foreground">
-        {format(parse(month, "yyyy-MM", new Date()), "MMMM yyyy")}: the ZIP has a folder per client, then per site, with an Excel file per register. It is not kept, so save it.
+        {format(parse(month, "yyyy-MM", new Date()), "MMMM yyyy")}: the ZIP has a folder per client, then per site, with an Excel file per register. Every download is kept in History below.
       </p>
+      {can("registers:download") && <History companyId={companyId} month={month} />}
     </div>
   )
 }

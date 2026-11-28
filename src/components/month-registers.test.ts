@@ -18,3 +18,12 @@ describe("fileProblem", () => {
     expect(fileProblem({ name: "pay.xlsx", size: 20 * 1024 * 1024 + 1 })).toMatch(/20 MB/)
   })
 })
+
+describe("fileSize", () => {
+  it("picks B, KB or MB", async () => {
+    const { fileSize } = await import("./month-registers")
+    expect(fileSize(512)).toBe("512 B")
+    expect(fileSize(1536)).toBe("1.5 KB")
+    expect(fileSize(3 * 1024 * 1024)).toBe("3.0 MB")
+  })
+})
