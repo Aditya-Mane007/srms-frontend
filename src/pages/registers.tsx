@@ -1,9 +1,16 @@
-import { Fragment, type ReactNode } from "react"
-import { Link, useParams, useSearchParams } from "react-router"
-import { useQuery } from "@tanstack/react-query"
-import { FileSpreadsheetIcon } from "lucide-react"
+import { Fragment, useState, type ReactNode } from "react"
+import { Link, useNavigate, useParams, useSearchParams } from "react-router"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
+import { CopyIcon, FileSpreadsheetIcon, PencilIcon, PlusIcon, PowerIcon, Trash2Icon } from "lucide-react"
+import { toast } from "sonner"
 import { api, must, type Schemas } from "@/api/client"
+import { usePermissions } from "@/access"
 import { useStates } from "@/data"
+import { ConfirmDialog, FormDialog } from "@/components/form-dialog"
+import { TextField } from "@/components/fields"
+import { str } from "@/components/layout"
+import { blankDefinition } from "@/pages/register-editor"
+import { Button } from "@/components/ui/button"
 import { DataTable, StatusBadge } from "@/components/data-table"
 import { Page } from "@/components/layout"
 import { InfoPanel, ProfileHeader, profileGrid } from "@/components/profile"
@@ -25,7 +32,7 @@ export function RegistersPage() {
   const code = sp.get("state") ?? "KA"
   const stateName = states.find((s) => s.code === code)?.name ?? code
   return (
-    <Page crumbs={[{ label: "Registers" }]}>
+    <Page crumbs={[{ label: "Registers" }]} actions={<AddRegister stateCode={code} stateName={stateName} />}>
       <DataTable
         id="registers"
         height="fill"
@@ -83,7 +90,7 @@ export function valueText(v: Col["value"]): string {
 }
 
 /** Two heading rows: a group spans its consecutive columns; ungrouped headings span both rows. */
-function HeadingPreview({ columns, numberRow }: { columns: Col[]; numberRow: boolean }) {
+export function HeadingPreview({ columns, numberRow }: { columns: Col[]; numberRow: boolean }) {
   const groups: { group?: string; cols: Col[] }[] = []
   for (const c of columns) {
     const last = groups[groups.length - 1]
@@ -148,7 +155,7 @@ export function RegisterPage() {
   const d = r.definition
   return (
     <Page bare crumbs={[...crumbs, { label: r.name }]}>
-      <ProfileHeader icon={<FileSpreadsheetIcon />} name={r.name} code={r.code} actions={null} />
+      <ProfileHeader icon={<FileSpreadsheetIcon />} name={r.name} code={r.code} actions={<RegisterActions r={r} stateCode={state?.code} />} />
       <div className={profileGrid}>
         <InfoPanel
           items={[
@@ -251,5 +258,113 @@ export function RegisterPage() {
         </div>
       </div>
     </Page>
+  )
+}
+
+const CODE_HINT = "2–30 capital letters, digits or _, e.g. FORM_XIII. Can't change later."
+
+/** Super Admin only: creates an own register with a one-column start, then opens the editor. */
+function AddRegister({ stateCode, stateName }: { stateCode: string; stateName: string }) {
+  const { data: me } = usePermissions()
+  const navigate = useNavigate()
+  const qc = useQueryClient()
+  if (!me?.isSuperAdmin) return null
+  return (
+    <FormDialog
+      trigger={<><PlusIcon /> Add register</>}
+      title="Add register"
+      description={`A new ${stateName} register, started with one column. You build the rest in the editor.`}
+      onSave={async (d) => {
+        const name = str(d, "name")
+        const r = await must(api.POST("/states/{code}/registers", { params: { path: { code: stateCode } }, body: { code: str(d, "code"), name, definition: blankDefinition(name) } }))
+        await qc.invalidateQueries({ queryKey: ["registers"] })
+        navigate(`/registers/${r.id}/edit`)
+      }}
+    >
+      <TextField name="code" label="Code" required pattern="[A-Z0-9_]{2,30}" hint={CODE_HINT} />
+      <TextField name="name" label="Name" required maxLength={200} />
+    </FormDialog>
+  )
+}
+
+type Dlg = "copy" | "toggle" | "delete" | null
+
+/** Common registers: Copy only. Own registers: Edit, Copy, Deactivate/Activate, Delete. Super Admin only. */
+function RegisterActions({ r, stateCode }: { r: Schemas["Register"]; stateCode?: string }) {
+  const { data: me } = usePermissions()
+  const navigate = useNavigate()
+  const qc = useQueryClient()
+  const [dlg, setDlg] = useState<Dlg>(null)
+  if (!me?.isSuperAdmin) return null
+  const close = (o: boolean) => !o && setDlg(null)
+  const done = () => qc.invalidateQueries({ queryKey: ["registers"] })
+  return (
+    <>
+      {!r.common && (
+        <Button render={<Link to={`/registers/${r.id}/edit`} />}>
+          <PencilIcon /> Edit
+        </Button>
+      )}
+      <Button variant="outline" onClick={() => setDlg("copy")} disabled={!stateCode}>
+        <CopyIcon /> {r.common ? "Copy to my registers" : "Copy"}
+      </Button>
+      {!r.common && (
+        <>
+          <Button variant="outline" onClick={() => setDlg("toggle")}>
+            <PowerIcon /> {r.active ? "Deactivate" : "Activate"}
+          </Button>
+          <Button variant="outline" onClick={() => setDlg("delete")}>
+            <Trash2Icon /> Delete
+          </Button>
+        </>
+      )}
+      <FormDialog
+        open={dlg === "copy"}
+        onOpenChange={close}
+        title={`Copy ${r.name}`}
+        description="Makes your own register from this one. You can edit the copy; the original stays as it is."
+        submitIcon={<CopyIcon />}
+        submitLabel="Copy"
+        onSave={async (d) => {
+          const copy = await must(api.POST("/states/{code}/registers", { params: { path: { code: stateCode! } }, body: { code: str(d, "code"), name: str(d, "name"), definition: r.definition } }))
+          await done()
+          navigate(`/registers/${copy.id}/edit`)
+        }}
+      >
+        <TextField name="code" label="Code" required pattern="[A-Z0-9_]{2,30}" defaultValue={`${r.code}_COPY`.slice(0, 30)} hint={CODE_HINT} />
+        <TextField name="name" label="Name" required maxLength={200} defaultValue={r.name} />
+      </FormDialog>
+      <ConfirmDialog
+        open={dlg === "toggle"}
+        onOpenChange={close}
+        title={`${r.active ? "Deactivate" : "Activate"} ${r.name}?`}
+        confirmLabel={r.active ? "Deactivate" : "Activate"}
+        destructive={r.active}
+        icon={<PowerIcon />}
+        onConfirm={async () => {
+          await must(api.PATCH("/registers/{id}", { params: { path: { id: r.id } }, body: { active: !r.active } }))
+          await done()
+          toast.success(`${r.name} ${r.active ? "deactivated" : "activated"}`)
+        }}
+      >
+        {r.active ? "It moves to the Inactive list and you can activate it again." : "It goes back to the Active list."}
+      </ConfirmDialog>
+      <ConfirmDialog
+        open={dlg === "delete"}
+        onOpenChange={close}
+        title={`Delete ${r.name}?`}
+        confirmLabel="Delete"
+        destructive
+        icon={<Trash2Icon />}
+        onConfirm={async () => {
+          await must(api.DELETE("/registers/{id}", { params: { path: { id: r.id } } }))
+          await done()
+          toast.success(`${r.name} deleted`)
+          navigate(stateCode ? `/registers?state=${stateCode}` : "/registers")
+        }}
+      >
+        This can't be undone. To keep it but stop using it, deactivate it instead.
+      </ConfirmDialog>
+    </>
   )
 }

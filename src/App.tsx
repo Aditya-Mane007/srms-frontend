@@ -11,6 +11,7 @@ import { ClientPage, CompaniesPage, CompanyPage } from "@/pages/companies"
 import { DashboardPage } from "@/pages/dashboard"
 import { MastersPage } from "@/pages/masters"
 import { RegisterPage, RegistersPage } from "@/pages/registers"
+import { RegisterEditorPage } from "@/pages/register-editor"
 import { RolesPage } from "@/pages/roles"
 import { UsersPage } from "@/pages/users"
 
@@ -42,6 +43,7 @@ export default function App() {
                 <Route path="companies/:companyId/clients/:clientId" element={<RequireCan any={["clients:read"]}><ClientPage /></RequireCan>} />
                 <Route path="registers" element={<RegistersPage />} />
                 <Route path="registers/:registerId" element={<RegisterPage />} />
+                <Route path="registers/:registerId/edit" element={<RegisterEditorPage />} />
                 <Route path="users" element={<RequireCan any={["users:manage", "companies:assign"]}><UsersPage /></RequireCan>} />
                 <Route path="roles" element={<RequireCan any={["roles:manage", "users:manage"]}><RolesPage /></RequireCan>} />
               </Route>
