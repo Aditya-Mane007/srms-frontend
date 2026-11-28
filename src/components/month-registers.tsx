@@ -2,7 +2,7 @@ import { useEffect, useState } from "react"
 import { useSearchParams } from "react-router"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { format, parse, subMonths } from "date-fns"
-import { CheckCircle2Icon, CircleDashedIcon, DownloadIcon, LoaderIcon, XCircleIcon } from "lucide-react"
+import { ActivityIcon, CheckCircle2Icon, CircleDashedIcon, DownloadIcon, LoaderIcon, XCircleIcon } from "lucide-react"
 import { toast } from "sonner"
 import { send } from "@/api/client"
 import { useCan } from "@/access"
@@ -125,11 +125,19 @@ function Activity({ steps }: { steps: Step[] }) {
     const t = setInterval(() => setNow(Date.now()), 1000)
     return () => clearInterval(t)
   }, [running])
-  if (!steps.length) return null
   return (
     <section aria-labelledby="act-h" className="flex flex-col gap-2">
       <h3 id="act-h" className="font-semibold">Activity</h3>
-      <ul aria-live="polite" className="flex flex-col divide-y rounded-lg border text-sm">
+      {!steps.length && (
+        <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed px-4 py-8 text-center text-sm">
+          <span className="grid size-10 place-items-center rounded-full bg-muted">
+            <ActivityIcon className="size-5 text-muted-foreground" aria-hidden />
+          </span>
+          <span className="font-medium">No activity yet</span>
+          <span className="text-muted-foreground">Uploads and register generations you start show here while they run.</span>
+        </div>
+      )}
+      <ul aria-live="polite" className={steps.length ? "flex flex-col divide-y rounded-lg border text-sm" : "sr-only"}>
         {steps.map((s) => (
           <li key={s.id} className="flex items-start gap-2 px-3 py-2">
             {s.state === "running" ? (
